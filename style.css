@@ -186,7 +186,7 @@ header nav .search i {
 
 .about .description .line {
   height: 2.5px;
-  width: 400px;
+  width: 600px;
   background-color: #fec86a;
   margin-right: 32px;
 }
@@ -194,7 +194,11 @@ header nav .search i {
 .about .description p {
   color: #fbfbfb;
   font-size: 20px;
+  text-align: justify;
+  line-height: 1.8;
+  word-spacing: 1px;
 }
+
 
 .about .description p span {
   color: #fec86a;
@@ -226,8 +230,8 @@ header nav .search i {
 }
 
 .skill-card {
-  height: 20vw;
-  width: 20vw;
+  height: 10vw;
+  width: 10vw;
   background-color: #3d3e42;
   border-radius: 20px;
   display: flex;
@@ -244,13 +248,13 @@ header nav .search i {
 }
 
 .skill-card img {
-  height: 7.5vw;
-  width: 7.5vw;
+  height: 4.5vw;
+  width: 4.5vw;
   object-fit: contain;
 }
 
 .skill-card h2 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
   color: #fbfbfb;
 }
@@ -318,12 +322,20 @@ header nav .search i {
 .portfolio-card .overlay h3 {
   color: #fbfbfb;
   font-size: 24px;
+  text-align: center;
+  margin: 0 auto;
+  max-width: 90%;
+  text-wrap: balance; /* optional for modern browsers */
 }
+
 
 .portfolio-card .overlay p {
   color: #fbfbfb;
   font-size: 16px;
   text-align: center;
+  margin: 0 auto;
+  max-width: 90%;
+  text-wrap: balance; /* optional for modern browsers */
 }
 
 .portfolio-card .overlay button {
