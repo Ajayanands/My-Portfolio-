@@ -11,8 +11,6 @@ html {
 }
 
 body {
-  padding: 0;
-  margin: 0;
   font-family: "Roboto", sans-serif;
   background-color: #34353b;
 }
@@ -21,43 +19,42 @@ header {
   height: 100vh;
   padding: 36px 100px;
   background-image: url(asset/Picsart_25-06-30_20-05-55-722.png);
-  background-position: 200px -400px; /* adjust this to align */
+  background-position: 200px -400px;
   background-size: 1500px auto;
   background-repeat: no-repeat;
   width: 100vw;
-  box-sizing: border-box;
 }
 
-
-
-header nav {
+nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: fixed;
   width: 90%;
   z-index: 99;
+  background-color: #34353b;
+  padding: 10px 20px;
+  top: 0;
 }
 
-header nav img {
+nav img {
   height: 56px;
   width: 56px;
   object-fit: contain;
-  filter: invert(70%) sepia(96%) saturate(558%) hue-rotate(359deg)
-    brightness(103%) contrast(106%);
+  filter: invert(70%) sepia(96%) saturate(558%) hue-rotate(359deg) brightness(103%) contrast(106%);
 }
 
-header nav ul {
+nav ul {
   display: flex;
 }
 
-header nav ul li {
+nav ul li {
+  margin: 0 15px;
   list-style: none;
-  margin: 0px 20px;
 }
 
-header nav ul li a {
-  color: #98999a;
+nav ul li a {
+  color: #fec86a;
   text-decoration: none;
   transition: all ease 0.5s;
 }
@@ -65,42 +62,15 @@ header nav ul li a {
 header nav ul li a:hover {
   color: #fbfbfb;
 }
-
-header nav ul li .active {
-  color: #fbfbfb;
+nav ul li .active {
+  color: #fec86a;
 }
 
-header nav .search {
-  height: 48px;
-  width: 200px;
-  background-color: #3d3e42;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 4px;
-  border-radius: 10px;
-}
-
-header nav .search input {
-  border: none;
-  background-color: transparent;
-  width: 80%;
-  color: #fbfbfb;
-  outline: none;
-}
-
-header nav .search input:focus {
-  border: none;
-  outline: none;
-}
-
-header nav .search input::placeholder {
-  color: #98999a;
-  font-size: 16px;
-}
-
-header nav .search i {
-  color: #98999a;
+.menu-toggle {
+  display: none;
+  font-size: 28px;
+  color: #fec86a;
+  cursor: pointer;
 }
 
 .landing {
@@ -111,41 +81,24 @@ header nav .search i {
   justify-content: space-between;
 }
 
-.landing .intro {
+.intro {
   display: flex;
   flex-direction: column;
 }
 
-.landing .intro h3 {
+.intro h3 {
   color: #fbfbfb;
   font-weight: 400;
   font-size: 32px;
   margin-left: 10vw;
 }
 
-.landing .intro h3 span {
+.intro h3 span {
   color: #fec86a;
   font-weight: 600;
   font-size: 3.5rem;
 }
 
-.intro button {
-  height: 48px;
-  width: 144px;
-  margin-top: 2.5vh;
-  margin-left: 10vw;
-  background-color: transparent;
-  border: 2px solid #fec86a;
-  border-radius: 8px;
-  color: #fec86a;
-  font-size: 16px;
-  transition: all ease 0.5s;
-}
-
-.intro button:hover {
-  background-color: #fec86a;
-  color: #34353b;
-}
 
 .socials {
   display: flex;
@@ -166,32 +119,34 @@ header nav .search i {
   font-size: 36px;
 }
 
-.about {
-  height: 50vh;
-  width: 100vw;
+.about,
+.skills,
+.portfolio {
   padding: 100px;
 }
 
-.about h1 {
+.about h1,
+.skills h1,
+.portfolio h1 {
   font-size: 56px;
   font-weight: 700;
   color: #fbfbfb;
   font-family: "Libre Baskerville", serif;
 }
 
-.about .description {
+.description {
   display: flex;
   align-items: start;
 }
 
-.about .description .line {
+.description .line {
   height: 2.5px;
   width: 600px;
   background-color: #fec86a;
   margin-right: 32px;
 }
 
-.about .description p {
+.description p {
   color: #fbfbfb;
   font-size: 20px;
   text-align: justify;
@@ -199,34 +154,11 @@ header nav .search i {
   word-spacing: 1px;
 }
 
-
-.about .description p span {
-  color: #fec86a;
-}
-
-.skills {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 50px 100px;
-}
-
-.skills h1 {
-  font-size: 56px;
-  font-weight: 700;
-  color: #fbfbfb;
-  font-family: "Libre Baskerville", serif;
-}
-
 .cards {
   display: flex;
-  align-items: center;
-  width: 100%;
   flex-wrap: wrap;
+  gap: 20px;
   justify-content: center;
-  margin-top: 50px;
-  gap: 2.5vh;
 }
 
 .skill-card {
@@ -236,11 +168,10 @@ header nav .search i {
   border-radius: 20px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   align-items: center;
   justify-content: center;
-  gap: 2.5vh;
-  transition: all ease 0.5s;
+  gap: 1rem;
+  transition: all 0.3s ease;
 }
 
 .skill-card:hover {
@@ -254,104 +185,67 @@ header nav .search i {
 }
 
 .skill-card h2 {
+  color: #fbfbfb;
   font-size: 20px;
-  font-weight: 400;
-  color: #fbfbfb;
-}
-
-.portfolio {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 50px 100px;
-}
-
-.portfolio h1 {
-  font-size: 56px;
-  font-weight: 700;
-  color: #fbfbfb;
-  font-family: "Libre Baskerville", serif;
 }
 
 .portfolio-cards {
   display: grid;
-  grid-template-columns: auto auto auto;
-  margin-top: 50px;
-  gap: 2.5vh;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 2rem;
 }
 
 .portfolio-card {
   position: relative;
-  height: 30vw;
-  width: 30vw;
   background-color: #3d3e42;
   border-radius: 20px;
   overflow: hidden;
-  align-items: center;
-  justify-content: center;
-  gap: 2.5vh;
-  transition: all ease 0.5s;
+}
+
+.portfolio-card img,
+.portfolio-card .overlay {
+  width: 100%;
+  height: auto;
 }
 
 .portfolio-card img {
-  position: relative;
-  height: 30vw;
-  width: 30vw;
   object-fit: cover;
 }
 
-.portfolio-card .overlay {
+.overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(52, 53, 59, 0.85);
   display: flex;
   flex-direction: column;
-  gap: 2.5vh;
-  height: 30vw;
-  width: 30vw;
-  background-color: #34353ba2;
-  align-items: center;
   justify-content: center;
-  padding: 24px;
+  align-items: center;
+  padding: 1rem;
   opacity: 0;
-  transition: all ease 0.5s;
+  transition: opacity 0.3s ease;
 }
 
-.portfolio-card .overlay h3 {
-  color: #fbfbfb;
-  font-size: 24px;
-  text-align: center;
-  margin: 0 auto;
-  max-width: 90%;
-  text-wrap: balance; /* optional for modern browsers */
-}
-
-
-.portfolio-card .overlay p {
-  color: #fbfbfb;
-  font-size: 16px;
-  text-align: center;
-  margin: 0 auto;
-  max-width: 90%;
-  text-wrap: balance; /* optional for modern browsers */
-}
-
-.portfolio-card .overlay button {
-  height: 36px;
-  width: 108px;
-  background-color: #fec86a;
-  border: 1px solid #fec86a;
-  border-radius: 8px;
-  color: #34353b;
-  font-size: 12px;
-  transition: all ease 0.5s;
-  cursor: pointer;
-}
-
-.portfolio-card .overlay:hover {
+.portfolio-card:hover .overlay {
   opacity: 1;
+}
+
+.overlay h3,
+.overlay p {
+  color: #fbfbfb;
+  text-align: center;
+}
+
+.overlay button {
+  background-color: #fec86a;
+  color: #34353b;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 10px;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .portfolio button {
@@ -366,124 +260,297 @@ header nav .search i {
   font-weight: 500;
   cursor: pointer;
   transition: all ease 0.5s;
-}
-
-.portfolio button:hover {
-  background-color: #cc9e4e;
-}
-
-.experience {
-  display: flex;
-  flex-direction: column;
-  /* height: 100vh; */
-  width: 100vw;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-}
-
-.darker-div {
-  background-color: #34353a;
-  width: 100vw;
-  height: 10vh;
-}
-
-.experience h1 {
-  position: absolute;
-  color: #fbfbfb;
-  font-size: 56px;
-  font-family: "Libre Baskerville", serif;
-  transform: translate(-50%, -50%);
-  top: 10%;
-  left: 15%;
-}
-
-.lighter-div {
-  background-color: #3d3e42;
-  width: 100vw;
-  /* height: 90vh; */
-  padding: 10vh;
-  display: flex;
-  flex-direction: column;
-  gap: 50px;
-}
-
-.lighter-div .exp {
-  height: 30vh;
-  width: 50vw;
-  position: relative;
-  margin-left: 20vh;
-}
-
-.exp h2 {
-  color: #fbfbfb;
-  font-size: 32px;
-  font-weight: 400;
-}
-
-.exp h2::before {
-  content: "";
-  height: 20px;
-  width: 20px;
-  color: #fec86a;
-  background-color: #fec86a;
-  position: absolute;
-  transform: translate(-50%, -50%);
-  top: 7.5%;
-  left: -5%;
-  border-radius: 50%;
-  box-shadow: 0px 0px 20px 5px #fec86a;
-}
-
-.exp-desc::before {
-  content: "";
-  height: 190px;
-  width: 2.5px;
-  background-color: #fbfbfb;
-  position: absolute;
-  transform: translate(-50%, -50%);
-  top: 55%;
-  left: -5%;
-}
-.exp-desc h3 {
-  color: #fbfbfb;
-  font-size: 20px;
-  font-weight: 400;
-  margin: 10px 0;
-}
-
-.exp-desc p {
-  color: #fbfbfb;
-  font-size: 16;
-  font-weight: 400;
+  display: block;
+  margin: 50px auto 0;
 }
 
 .contact-me {
-  width: 100vw;
-  padding: 100px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(145deg, #1e416e, #0d1c35);
+  padding: 80px 20px;
+  border-top: 2px solid #fff2;
+  text-align: center;
 }
 
 .contact-me h1 {
-  font-size: 56px;
+  font-size: 48px;
   color: #fbfbfb;
+  margin-bottom: 40px;
   font-family: "Libre Baskerville", serif;
-  font-weight: 700;
 }
 
 .contact {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
 }
 
 .contact-card {
-  background-color: #fec86a;
-  padding: 10px;
-  border-radius: 8px;
+  background: rgba(254, 200, 106, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(254, 200, 106, 0.3);
+  box-shadow: 0 8px 24px rgba(254, 200, 106, 0.15);
+  padding: 20px;
+  border-radius: 16px;
   display: flex;
-  gap: 10px;
-  margin-top: 7.5vh;
+  align-items: center;
+  gap: 12px;
+  min-width: 260px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(254, 200, 106, 0.3);
+}
+
+.contact-card i {
+  font-size: 24px;
+  color: #fec86a;
+}
+
+.contact-card a,
+.contact-card p {
+  font-size: 18px;
+  color: #fbfbfb;
+  text-decoration: none;
+}
+
+.contact-card a:hover {
+  text-decoration: underline;
+}
+
+.resume-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.resume-btn.view {
+  background-color: #1e416e;
+  color: white;
+  margin-right: 10px;
+}
+
+.resume-btn.download {
+  background-color: #2e7d32;
+  color: white;
+}
+
+
+
+
+
+
+@media (max-width: 1080px) {
+
+
+    header {
+    background-size: cover;              /* Make it cover nicely */
+    padding: 250px 20px;                  /* Reduce side padding on small screens */
+    background-position: center -250px; /* Adjust Y offset */
+    background-size: 1000px auto; 
+  }
+  nav ul {
+    display: none;
+    flex-direction: column;
+    background-color: #3d3e42;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 100%;
+  }
+
+  nav ul.show {
+    display: flex;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .landing {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .intro h3,
+  .intro button {
+    margin-left: 0;
+  }
+
+  .intro h3 {
+    font-size: 24px;
+  }
+
+  .intro h3 span {
+    font-size: 2rem;
+  }
+
+  .socials {
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .about,
+  .skills,
+  .portfolio {
+    padding: 40px 20px;
+  }
+
+  .description {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .description .line {
+    width: 100px;
+    margin-bottom: 10px;
+  }
+
+  .description p {
+    padding: 0 10px;
+    font-size: 16px;
+  }
+
+  .skill-card {
+    width: 120px;
+    height: 120px;
+  }
+
+  .skill-card img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .portfolio-card {
+    height: 80vw;               /* fixed height for uniformity */
+    position: relative;
+    overflow: hidden;
+  }
+.portfolio-cards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .portfolio-card img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .portfolio-card .overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    opacity: 1 !important;
+  }
+
+  /* Keep only title and button, hide description */
+  .portfolio-card .overlay p {
+    display: none;
+  }
+
+  .portfolio-card .overlay h3 {
+    font-size: 16px;
+    color: #fff;
+    text-align: center;
+  }
+
+  .portfolio-card .overlay button {
+    margin-top: 0;
+    background-color: #fec86a;
+    color: #34353b;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Optional: disable hover effect */
+  .portfolio-card:hover .overlay {
+    opacity: 1 !important;
+  }
+
+}
+@media (hover: none) and (pointer: coarse) {
+  .portfolio-card .overlay {
+    opacity: 1 !important;
+    background-color: transparent;
+    /* Remove this: pointer-events: none; */
+  }
+
+  .portfolio-card:hover .overlay {
+    opacity: 1 !important;
+  }
+}
+
+@media (min-width: 1081px) {
+  .portfolio-card {
+    height: 400px; /* Fixed uniform height for all cards on desktop */
+    position: relative;
+    overflow: hidden;
+  }
+
+  .portfolio-card img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .portfolio-card .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(52, 53, 59, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .portfolio-card:hover .overlay {
+    opacity: 1;
+  }
+
+  .overlay h3 {
+    font-size: 20px;
+    color: #fbfbfb;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .overlay p {
+    font-size: 14px;
+    color: #fbfbfb;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .overlay button {
+    background-color: #fec86a;
+    color: #34353b;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
 }
