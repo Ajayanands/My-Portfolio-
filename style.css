@@ -344,7 +344,7 @@ nav ul li .active {
 
 
 
-@media (max-width: 1080px) {
+@media (max-width: 768px) {
 
 
     header {
@@ -497,7 +497,7 @@ nav ul li .active {
   }
 }
 
-@media (min-width: 1081px) {
+@media (min-width: 768px) {
   .portfolio-card {
     height: 400px; /* Fixed uniform height for all cards on desktop */
     position: relative;
