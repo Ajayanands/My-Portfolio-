@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ajay Anand S | AI & ML Engineer</title>
-  
-  <!-- Core Libraries -->
+  <title>Ajay Anand S | Generative AI Engineer</title>
+  <meta name="description" content="Portfolio of Ajay Anand S - Generative AI Engineer, AI Product Builder, Full-Stack Developer building intelligent products that solve real-world problems.">
+  <meta name="theme-color" content="#04040a">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  
-  <!-- Post-Processing Libraries for High-End Glow (Bloom) -->
+
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
@@ -21,11 +21,8 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  
+
   <style>
-    /* ═══════════════════════════════════
-       CSS CUSTOM PROPERTIES
-       ═══════════════════════════════════ */
     :root {
       --bg:           #04040a;
       --gold:         #f7c948;
@@ -33,27 +30,18 @@
       --text:         #eeeef5;
       --text-2:       #9494b0;
       --text-3:       #5a5a78;
-      
       --radius-sm:    10px;
       --radius-md:    16px;
       --radius-lg:    24px;
-
-      /* LIQUID GLASS VARIABLES */
       --glass-bg: rgba(255, 255, 255, 0.02);
       --glass-border: rgba(255, 255, 255, 0.12);
       --glass-shadow: 0 4px 8px rgba(0, 0, 0, 0.25), 0 -10px 25px inset rgba(0, 0, 0, 0.15);
-
       --font-display: 'Space Grotesk', sans-serif;
       --font-body:    'Inter', sans-serif;
       --font-mono:    'JetBrains Mono', monospace;
     }
-
-    /* ═══════════════════════════════════
-       RESET & BASE
-       ═══════════════════════════════════ */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; font-size: 16px; }
-
     body {
       font-family: var(--font-body);
       background: var(--bg);
@@ -61,19 +49,27 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      cursor: none;
     }
-
     img { max-width: 100%; display: block; }
     a { text-decoration: none; color: inherit; }
     button { cursor: pointer; border: none; background: none; }
-
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
 
-    /* ═══════════════════════════════════
-       LOADER
-       ═══════════════════════════════════ */
+    .cursor-dot, .cursor-outline {
+      position: fixed; top: 0; left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%; pointer-events: none; z-index: 99999;
+      transition: opacity 0.3s ease;
+    }
+    .cursor-dot { width: 6px; height: 6px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+    .cursor-outline { width: 36px; height: 36px; border: 1px solid rgba(247, 201, 72, 0.4); transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease; }
+    .cursor-outline.hover { width: 56px; height: 56px; border-color: var(--cyan); background: rgba(56, 217, 245, 0.05); }
+    .cursor-outline.click { width: 24px; height: 24px; border-color: var(--gold); }
+    @media (max-width: 768px) { body { cursor: auto; } .cursor-dot, .cursor-outline { display: none; } }
+
     #loader {
       position: fixed; inset: 0; z-index: 10000;
       background: var(--bg); display: flex; flex-direction: column;
@@ -85,27 +81,88 @@
     .loader-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), var(--cyan)); border-radius: 2px; transition: width 0.1s ease; }
     .loader-status { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-3); letter-spacing: 0.2em; }
 
-    /* ═══════════════════════════════════
-       BACKGROUNDS (WebGL & Noise)
-       ═══════════════════════════════════ */
-    #webgl-canvas {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+    .cmd-palette-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(4, 4, 10, 0.8); backdrop-filter: blur(10px);
+      display: none; align-items: flex-start; justify-content: center;
+      padding-top: 15vh; opacity: 0; transition: opacity 0.2s ease;
     }
-    .noise {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 512px 512px;
+    .cmd-palette-overlay.open { display: flex; opacity: 1; }
+    .cmd-palette {
+      width: 90%; max-width: 560px;
+      background: rgba(10, 10, 20, 0.95);
+      border: 1px solid var(--glass-border); border-radius: var(--radius-md);
+      overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
+    .cmd-palette-input-wrap {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--glass-border);
+    }
+    .cmd-palette-input-wrap i { color: var(--text-3); font-size: 1.1rem; }
+    .cmd-palette-input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-family: var(--font-body); font-size: 0.95rem;
+    }
+    .cmd-palette-input::placeholder { color: var(--text-3); }
+    .cmd-palette-results { max-height: 320px; overflow-y: auto; }
+    .cmd-palette-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1.25rem; cursor: pointer; transition: background 0.15s ease;
+    }
+    .cmd-palette-item:hover, .cmd-palette-item.active { background: rgba(247, 201, 72, 0.08); }
+    .cmd-palette-item i { color: var(--cyan); font-size: 1rem; }
+    .cmd-palette-item span { font-size: 0.85rem; color: var(--text); }
+    .cmd-palette-item kbd {
+      margin-left: auto; font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--text-3); background: rgba(255,255,255,0.05);
+      padding: 0.15rem 0.4rem; border-radius: 4px;
+    }
+    .cmd-palette-empty { padding: 2rem; text-align: center; color: var(--text-3); font-size: 0.85rem; }
 
-    /* ═══════════════════════════════════
-       LIQUID GLASS GLOBAL CLASS
-       ═══════════════════════════════════ */
+    .terminal-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(4, 4, 10, 0.95);
+      display: none; flex-direction: column;
+      padding: 2rem; font-family: var(--font-mono);
+      opacity: 0; transition: opacity 0.3s ease;
+    }
+    .terminal-overlay.open { display: flex; opacity: 1; }
+    .terminal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .terminal-title { color: var(--gold); font-size: 0.85rem; }
+    .terminal-close { color: var(--text-3); font-size: 1.2rem; cursor: pointer; }
+    .terminal-close:hover { color: var(--text); }
+    .terminal-body { flex: 1; overflow-y: auto; font-size: 0.8rem; line-height: 1.8; }
+    .terminal-line { margin-bottom: 0.25rem; }
+    .terminal-prompt { color: var(--gold); }
+    .terminal-output { color: var(--text-2); }
+    .terminal-input-line { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+    .terminal-input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-family: var(--font-mono); font-size: 0.8rem;
+    }
+    .terminal-input::placeholder { color: var(--text-3); }
+
+    .easter-egg {
+      position: fixed; inset: 0; z-index: 10001;
+      background: var(--bg); display: none;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 1rem;
+    }
+    .easter-egg.active { display: flex; }
+    .easter-egg h2 { font-family: var(--font-display); font-size: 2rem; color: var(--gold); }
+    .easter-egg p { color: var(--text-2); font-size: 0.9rem; }
+    .easter-egg-close { position: absolute; top: 2rem; right: 2rem; color: var(--text-3); font-size: 1.5rem; cursor: pointer; }
+
+    #webgl-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .noise { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 512px 512px; }
+
     .liquid-target {
-      position: relative;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shadow);
-      overflow: hidden;
+      position: relative; background: var(--glass-bg); border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow); overflow: hidden;
       transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
     }
     .liquid-target:hover {
@@ -113,33 +170,23 @@
       box-shadow: 0 12px 30px rgba(56, 217, 245, 0.15), 0 -10px 25px inset rgba(0, 0, 0, 0.2);
     }
     .liquid-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-    
-    /* Interactive elements wrapper inside glass */
     .card-content { position: relative; z-index: 1; pointer-events: auto; }
 
-    /* ═══════════════════════════════════
-       NAVIGATION
-       ═══════════════════════════════════ */
     nav {
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
       width: 90%; max-width: 1100px; z-index: 500;
       display: flex; align-items: center; justify-content: space-between;
       border-radius: 50px; padding: 0; 
     }
-    nav.scrolled {
-      background: rgba(4, 4, 10, 0.4);
-    }
-    nav .card-content {
-      display: flex; justify-content: space-between; align-items: center;
-      width: 100%; padding: 14px 28px;
-    }
+    nav.scrolled { background: rgba(4, 4, 10, 0.4); }
+    nav .card-content { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 14px 28px; }
     .nav-logo { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--gold); letter-spacing: 0.06em; }
     .nav-logo em { color: var(--text-2); font-style: normal; font-weight: 400; }
     .nav-links { list-style: none; display: flex; gap: 2.5rem; align-items: center; }
     .nav-links li { transform-origin: center center; }
     .nav-links a { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-2); transition: color 0.25s ease; position: relative; display: inline-block; }
     .nav-links a:hover { color: var(--text); }
-    
+
     .nav-toggle { display: none; flex-direction: column; gap: 5px; padding: 6px; background: none; border: none; }
     .nav-toggle span { display: block; width: 22px; height: 1.5px; background: var(--gold); border-radius: 2px; transition: 0.3s; }
     .nav-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(4.5px, 5px); }
@@ -156,9 +203,6 @@
     .nav-drawer a { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--text-2); transition: color 0.2s ease; }
     .nav-drawer a:hover { color: var(--gold); }
 
-    /* ═══════════════════════════════════
-       MAIN WRAPPER & SECTIONS
-       ═══════════════════════════════════ */
     main { position: relative; z-index: 2; }
     .container { max-width: 1160px; margin: 0 auto; padding-left: clamp(1.25rem, 5vw, 3rem); padding-right: clamp(1.25rem, 5vw, 3rem); }
     section { padding-block: clamp(5rem, 10vw, 9rem); }
@@ -167,16 +211,11 @@
     .section-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--text); }
     .section-title .accent { color: var(--gold); }
 
-    /* ═══════════════════════════════════
-       HERO
-       ═══════════════════════════════════ */
     #hero { min-height: 100svh; display: flex; align-items: center; padding-block: 0; padding-top: 5rem; }
     .hero-inner { display: grid; grid-template-columns: 1fr auto; gap: clamp(2rem, 6vw, 6rem); align-items: center; width: 100%; }
     .hero-content { display: flex; flex-direction: column; gap: 1.25rem; }
 
-    .hero-badge {
-      display: inline-flex; align-items: center; border-radius: 100px; width: fit-content; opacity: 0;
-    }
+    .hero-badge { display: inline-flex; align-items: center; border-radius: 100px; width: fit-content; opacity: 0; }
     .hero-badge .card-content {
       padding: 0.5rem 1.2rem; display: flex; align-items: center; gap: 0.6rem;
       font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.15em; color: var(--cyan); text-transform: uppercase;
@@ -211,7 +250,6 @@
     .scroll-mouse::after { content: ''; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 3px; height: 6px; background: var(--gold); border-radius: 2px; animation: scrollWheel 2s ease-in-out infinite; }
     @keyframes scrollWheel { 0%,100% { top: 5px; opacity: 1; } 80% { top: 18px; opacity: 0; } }
 
-    /* Brain Visual */
     .hero-visual { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1rem; opacity: 0;}
     #brain-canvas-wrap { position: relative; width: clamp(280px, 34vw, 440px); height: clamp(280px, 34vw, 440px); flex-shrink: 0; cursor: crosshair; }
     #brain-canvas { width: 100%; height: 100%; border-radius: 50%; display: block; }
@@ -228,17 +266,14 @@
     .hero-photo-badge-name { font-size: 0.8rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
     .hero-photo-badge-role { font-family: var(--font-mono); font-size: 0.62rem; color: var(--cyan); letter-spacing: 0.12em; }
 
-    /* ═══════════════════════════════════
-       ABOUT
-       ═══════════════════════════════════ */
     .about-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(2.5rem, 6vw, 6rem); align-items: start; }
     .about-photo-wrap { border-radius: var(--radius-md); opacity: 0; }
     .about-photo-wrap .card-content { padding: 0; width: 100%; height: 100%; }
     .about-photo-wrap img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(60%) contrast(1.05); transition: filter 0.5s ease, transform 0.5s ease; }
     .about-photo-wrap:hover img { filter: grayscale(20%); transform: scale(1.02); }
     .about-photo-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(4,4,10,0.6) 100%); pointer-events: none; }
-    .about-tag { position: absolute; bottom: 1.25rem; left: 1.25rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--gold); background: rgba(4,4,10,0.7); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.65rem; }
-    
+    .about-tag { position: absolute; bottom: 1.25rem; left: 1.25rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--gold); background: rgba(4,4,10,0.7); border: 1px solid var(--glass-border); border-radius: 6px; padding: 0.3rem 0.65rem; }
+
     .about-content { display: flex; flex-direction: column; gap: 1.5rem; opacity: 0; }
     .about-content p { font-size: 0.97rem; line-height: 1.85; color: var(--text-2); }
     .about-content p strong { color: var(--text); font-weight: 600; }
@@ -249,12 +284,24 @@
     .stat-label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
     .about-actions { display: flex; flex-wrap: wrap; gap: 0.85rem; }
 
-    /* ═══════════════════════════════════
-       SKILLS
-       ═══════════════════════════════════ */
+    .timeline { position: relative; margin-top: 3rem; }
+    .timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, var(--gold), var(--cyan), transparent); }
+    .timeline-item { position: relative; padding-left: 60px; padding-bottom: 2.5rem; opacity: 0; transform: translateX(-20px); }
+    .timeline-dot { position: absolute; left: 12px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); border: 2px solid var(--gold); box-shadow: 0 0 12px rgba(247,201,72,0.3); }
+    .timeline-dot.active { background: var(--gold); }
+    .timeline-content { border-radius: var(--radius-md); }
+    .timeline-content .card-content { padding: 1.5rem; }
+    .timeline-date { font-family: var(--font-mono); font-size: 0.7rem; color: var(--cyan); letter-spacing: 0.15em; margin-bottom: 0.5rem; }
+    .timeline-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
+    .timeline-org { font-size: 0.85rem; color: var(--gold); margin-bottom: 0.75rem; }
+    .timeline-desc { font-size: 0.88rem; line-height: 1.7; color: var(--text-2); }
+    .timeline-desc ul { list-style: none; padding: 0; margin-top: 0.5rem; }
+    .timeline-desc li { position: relative; padding-left: 1.2rem; margin-bottom: 0.4rem; }
+    .timeline-desc li::before { content: '>'; position: absolute; left: 0; color: var(--gold); }
+
     .skills-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 3rem; }
     .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: clamp(0.75rem, 2vw, 1.25rem); }
-    
+
     .skill-card { border-radius: var(--radius-md); opacity: 0; transform: translateY(24px); }
     .skill-card .card-content { padding: clamp(1.25rem, 3vw, 2rem) 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.85rem; }
     .skill-icon { width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; transition: transform 0.35s ease; }
@@ -267,46 +314,121 @@
     .skill-level-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--cyan)); border-radius: 2px; transition: width 0.9s cubic-bezier(0.4,0,0.2,1) 0.1s; }
     .skill-card:hover .skill-level-fill { width: var(--pct, 85%); }
 
-    /* ═══════════════════════════════════
-       PROJECTS
-       ═══════════════════════════════════ */
+    .github-section { margin-top: 3rem; }
+    .github-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+    .github-card { border-radius: var(--radius-md); opacity: 0; transform: translateY(20px); }
+    .github-card .card-content { padding: 1.5rem; }
+    .github-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .github-card-header i { font-size: 1.5rem; color: var(--gold); }
+    .github-card-header h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--text); }
+    .github-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .github-stat-row:last-child { border-bottom: none; }
+    .github-stat-label { font-size: 0.8rem; color: var(--text-2); }
+    .github-stat-value { font-family: var(--font-mono); font-size: 0.9rem; color: var(--gold); font-weight: 600; }
+    .github-heatmap { display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; margin-top: 0.75rem; }
+    .github-heatmap-cell { aspect-ratio: 1; border-radius: 2px; background: rgba(255,255,255,0.05); transition: background 0.3s ease; }
+    .github-heatmap-cell.l0 { background: rgba(255,255,255,0.05); }
+    .github-heatmap-cell.l1 { background: rgba(247,201,72,0.2); }
+    .github-heatmap-cell.l2 { background: rgba(247,201,72,0.4); }
+    .github-heatmap-cell.l3 { background: rgba(247,201,72,0.6); }
+    .github-heatmap-cell.l4 { background: rgba(247,201,72,0.9); }
+    .github-repos { display: flex; flex-direction: column; gap: 0.5rem; }
+    .github-repo-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 0.75rem; border-radius: 8px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.2s ease;
+    }
+    .github-repo-item:hover { border-color: var(--gold); background: rgba(247,201,72,0.05); }
+    .github-repo-name { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text); }
+    .github-repo-lang { font-size: 0.7rem; color: var(--cyan); }
+    .github-repo-stars { font-size: 0.75rem; color: var(--gold); display: flex; align-items: center; gap: 0.25rem; }
+
     .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: clamp(1rem, 2.5vw, 1.5rem); margin-top: 3rem; }
     .project-card { border-radius: var(--radius-md); opacity: 0; transform: translateY(20px); }
     .project-card .card-content { padding: 1.75rem; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-    
+
     .project-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; }
     .project-icon { width: 48px; height: 48px; border: 1px solid rgba(247,201,72,0.2); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--gold); }
     .project-links { display: flex; gap: 0.6rem; }
     .project-links a { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: var(--text-2); font-size: 1rem; transition: color 0.2s; }
     .project-links a:hover { color: var(--gold); }
-    
+
     .project-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.6rem; }
     .project-desc { font-size: 0.88rem; line-height: 1.7; color: var(--text-2); margin-bottom: 1.25rem; flex-grow: 1; }
     .project-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; }
     .project-tag { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; color: var(--cyan); border: 1px solid rgba(56,217,245,0.15); border-radius: 6px; padding: 0.25rem 0.6rem; }
+    .project-status {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 0.75rem;
+    }
+    .project-status.production { color: #4ade80; }
+    .project-status.prototype { color: var(--gold); }
+    .project-status.research { color: var(--cyan); }
 
-    /* ═══════════════════════════════════
-       CONTACT & FOOTER
-       ═══════════════════════════════════ */
+    .certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+    .cert-card { border-radius: var(--radius-md); opacity: 0; transform: translateY(20px); }
+    .cert-card .card-content { padding: 1.5rem; }
+    .cert-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--gold); border: 1px solid rgba(247,201,72,0.2); margin-bottom: 1rem; }
+    .cert-title { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
+    .cert-issuer { font-size: 0.8rem; color: var(--cyan); margin-bottom: 0.5rem; }
+    .cert-desc { font-size: 0.8rem; line-height: 1.6; color: var(--text-2); }
+    .cert-date { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-3); margin-top: 0.75rem; letter-spacing: 0.1em; }
+
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+    .blog-card { border-radius: var(--radius-md); opacity: 0; transform: translateY(20px); }
+    .blog-card .card-content { padding: 1.5rem; }
+    .blog-meta { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .blog-date { font-family: var(--font-mono); font-size: 0.65rem; color: var(--cyan); letter-spacing: 0.1em; }
+    .blog-tag { font-size: 0.65rem; color: var(--gold); border: 1px solid rgba(247,201,72,0.2); border-radius: 4px; padding: 0.15rem 0.5rem; }
+    .blog-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; line-height: 1.3; }
+    .blog-excerpt { font-size: 0.85rem; line-height: 1.7; color: var(--text-2); margin-bottom: 1rem; }
+    .blog-readmore { font-size: 0.8rem; color: var(--gold); display: inline-flex; align-items: center; gap: 0.35rem; transition: gap 0.2s ease; }
+    .blog-readmore:hover { gap: 0.6rem; }
+
     #contact { text-align: center; }
     .contact-inner { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
     .contact-desc { font-size: 1rem; line-height: 1.8; color: var(--text-2); }
     .contact-links { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; align-items: center; }
-    
+
     .contact-email { border-radius: var(--radius-sm); }
     .contact-email .card-content { font-family: var(--font-mono); font-size: 0.9rem; color: var(--gold); padding: 0.85rem 2rem; letter-spacing: 0.05em; }
-    
+
     .contact-link { border-radius: var(--radius-sm); }
     .contact-link .card-content { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1.4rem; color: var(--text-2); font-size: 0.85rem; }
     .contact-link:hover .card-content { color: var(--gold); }
     .contact-link:hover { transform: translateY(-2px); }
 
+    .contact-form { width: 100%; max-width: 500px; margin-top: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-3); margin-bottom: 0.4rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .form-group input, .form-group textarea {
+      width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm); padding: 0.75rem 1rem;
+      color: var(--text); font-family: var(--font-body); font-size: 0.9rem;
+      outline: none; transition: border-color 0.3s ease;
+    }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--gold); }
+    .form-group textarea { min-height: 120px; resize: vertical; }
+    .form-submit { width: 100%; }
+    .form-submit .card-content { justify-content: center; }
+
+    .visitor-counter {
+      position: fixed; bottom: 20px; right: 20px; z-index: 100;
+      border-radius: var(--radius-sm); font-family: var(--font-mono);
+      font-size: 0.7rem; color: var(--text-3);
+    }
+    .visitor-counter .card-content { padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .visitor-counter i { color: var(--gold); }
+
     footer { position: relative; z-index: 2; padding: 2rem clamp(1.25rem, 5vw, 3rem); border-top: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
     .footer-brand { font-family: var(--font-display); font-size: 0.9rem; color: var(--text-3); }
     .footer-brand strong { color: var(--gold); }
     .footer-note { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.15em; color: var(--text-3); }
+    .footer-quote { font-family: var(--font-display); font-style: italic; font-size: 0.8rem; color: var(--text-2); max-width: 400px; text-align: right; line-height: 1.5; }
+    .footer-quote span { color: var(--gold); }
 
-    /* RESPONSIVE */
     @media (max-width: 1024px) { nav { width: 95%; } }
     @media (max-width: 768px) {
       .nav-links { display: none; }
@@ -321,7 +443,13 @@
       .about-stats { justify-content: center; }
       .about-actions { justify-content: center; }
       .skills-intro { flex-direction: column; align-items: flex-start; gap: 0; }
+      .github-heatmap { grid-template-columns: repeat(26, 1fr); }
+      .timeline::before { left: 10px; }
+      .timeline-item { padding-left: 40px; }
+      .timeline-dot { left: 2px; }
       footer { justify-content: center; text-align: center; }
+      .footer-quote { text-align: center; max-width: 100%; }
+      .visitor-counter { bottom: 10px; right: 10px; }
     }
     @media (max-width: 480px) {
       .hero-name { font-size: clamp(2.2rem, 11vw, 3rem); }
@@ -329,11 +457,48 @@
       .contact-links { gap: 0.75rem; }
       .about-stats { gap: 1.25rem; }
       .stat-num { font-size: 1.5rem; }
+      .github-grid { grid-template-columns: 1fr; }
+      .certs-grid { grid-template-columns: 1fr; }
+      .blog-grid { grid-template-columns: 1fr; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
   </style>
+<base target="_blank">
 </head>
 <body>
+
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-outline" id="cursor-outline"></div>
+
+<div class="cmd-palette-overlay" id="cmd-palette">
+  <div class="cmd-palette">
+    <div class="cmd-palette-input-wrap">
+      <i class="ri-search-line"></i>
+      <input type="text" class="cmd-palette-input" id="cmd-input" placeholder="Type a command or search..." autocomplete="off">
+      <kbd>ESC</kbd>
+    </div>
+    <div class="cmd-palette-results" id="cmd-results"></div>
+  </div>
+</div>
+
+<div class="terminal-overlay" id="terminal">
+  <div class="terminal-header">
+    <span class="terminal-title">ajay@portfolio:~$</span>
+    <i class="ri-close-line terminal-close" id="terminal-close"></i>
+  </div>
+  <div class="terminal-body" id="terminal-body"></div>
+  <div class="terminal-input-line">
+    <span class="terminal-prompt">$</span>
+    <input type="text" class="terminal-input" id="terminal-input" placeholder="Type 'help' for commands" autocomplete="off">
+  </div>
+</div>
+
+<div class="easter-egg" id="easter-egg">
+  <i class="ri-close-line easter-egg-close" id="easter-close"></i>
+  <h2>🎉 You found the secret!</h2>
+  <p>"Let no ocean or boundary limit your horizon. If a path does not exist, command your ships—or your intellect—to forge it." — Rajendra Chola I</p>
+  <p style="color:var(--text-3); font-size:0.75rem; margin-top:1rem;">You discovered the Konami Code easter egg. Well played!</p>
+</div>
 
 <div id="loader">
   <div class="loader-logo">AJAY<em>.</em></div>
@@ -346,15 +511,16 @@
 <canvas id="webgl-canvas"></canvas>
 <div class="noise"></div>
 
-<!-- NAV as Liquid Target -->
 <nav id="nav" class="liquid-target">
   <div class="liquid-bg"></div>
   <div class="card-content">
-    <a class="nav-logo" href="#">AJAY<em> / AI Engineer</em></a>
+    <a class="nav-logo" href="#">AJAY<em> / GenAI Engineer</em></a>
     <ul class="nav-links">
       <li><a href="#about">About</a></li>
+      <li><a href="#experience">Experience</a></li>
       <li><a href="#skills">Skills</a></li>
       <li><a href="#projects">Projects</a></li>
+      <li><a href="#github">GitHub</a></li>
       <li><a href="#contact" class="btn nav-cta liquid-target"><div class="liquid-bg"></div><span class="card-content">Contact</span></a></li>
     </ul>
     <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
@@ -365,8 +531,10 @@
 
 <div class="nav-drawer" id="nav-drawer">
   <a href="#about">About</a>
+  <a href="#experience">Experience</a>
   <a href="#skills">Skills</a>
   <a href="#projects">Projects</a>
+  <a href="#github">GitHub</a>
   <a href="#contact">Contact</a>
 </div>
 
@@ -375,12 +543,11 @@
     <div class="container">
       <div class="hero-inner">
         <div class="hero-content">
-          <!-- BADGE as Liquid Target -->
           <div class="hero-badge liquid-target">
             <div class="liquid-bg"></div>
             <div class="card-content">
               <div class="hero-badge-dot"></div>
-              Available for Projects
+              Available for Opportunities
             </div>
           </div>
 
@@ -389,16 +556,15 @@
             <span class="line-2">AJAY ANAND S</span>
           </h1>
 
-          <p class="hero-tagline">AI &amp; ML Enthusiast · M.Sc AI & ML · Builder</p>
+          <p class="hero-tagline">Generative AI Engineer · AI Product Builder · Full-Stack Developer</p>
 
           <p class="hero-desc">
-            I build <strong>intelligent systems</strong> that turn
-            <span class="hl">machine learning</span> into products people
-            actually use — from GenAI study platforms to smart safety
-            hardware. Complex algorithms, real-world impact.
+            I build <strong>intelligent products</strong> that solve real-world problems through
+            <span class="hl">Generative AI</span>, Machine Learning, Mobile Applications,
+            and Modern Software Engineering. From enterprise AI solutions to
+            proactive safety wearables — I turn complex ideas into production-ready systems.
           </p>
 
-          <!-- ACTIONS as Liquid Targets -->
           <div class="hero-actions">
             <a href="./asset/Ajay_Anand_S_Resume.pdf" class="btn btn-primary liquid-target" target="_blank">
               <div class="liquid-bg"></div><span class="card-content"><i class="ri-download-line"></i> Download Resume</span>
@@ -406,12 +572,15 @@
             <a href="#projects" class="btn btn-ghost liquid-target">
               <div class="liquid-bg"></div><span class="card-content"><i class="ri-code-s-slash-line"></i> View Projects</span>
             </a>
+            <button class="btn btn-ghost liquid-target" id="terminal-trigger">
+              <div class="liquid-bg"></div><span class="card-content"><i class="ri-terminal-line"></i> Terminal</span>
+            </button>
           </div>
 
-          <!-- SOCIALS as Liquid Targets -->
           <div class="hero-socials">
+            <a href="https://github.com/Ajayanands" class="liquid-target" target="_blank" aria-label="GitHub"><div class="liquid-bg"></div><span class="card-content"><i class="ri-github-fill"></i></span></a>
             <a href="https://www.instagram.com/ajuu_.012._offl/" class="liquid-target" target="_blank" aria-label="Instagram"><div class="liquid-bg"></div><span class="card-content"><i class="ri-instagram-line"></i></span></a>
-            <a href="https://wa.me/917305254450" class="liquid-target" target="_blank" aria-label="WhatsApp"><div class="liquid-bg"></div><span class="card-content"><i class="ri-whatsapp-line"></i></span></a>
+            <a href="https://wa.me/916369715294" class="liquid-target" target="_blank" aria-label="WhatsApp"><div class="liquid-bg"></div><span class="card-content"><i class="ri-whatsapp-line"></i></span></a>
             <a href="mailto:ajay12071911@gmail.com" class="liquid-target" aria-label="Email"><div class="liquid-bg"></div><span class="card-content"><i class="ri-mail-line"></i></span></a>
           </div>
         </div>
@@ -420,15 +589,14 @@
           <div id="brain-canvas-wrap">
             <canvas id="brain-canvas"></canvas>
           </div>
-          <div class="brain-label" id="brain-label">initializing cortex…</div>
-          <!-- PHOTO BADGE as Liquid Target -->
+          <div class="brain-label" id="brain-label">initializing cortex...</div>
           <div class="hero-photo-badge liquid-target">
             <div class="liquid-bg"></div>
             <div class="card-content">
               <img src="./asset/images/IMG_1290.PNG" alt="Ajay Anand S" onerror="this.src='https://via.placeholder.com/40/38d9f5/0a0805?text=A'">
               <div class="hero-photo-badge-info">
                 <span class="hero-photo-badge-name">Ajay Anand S</span>
-                <span class="hero-photo-badge-role">AI &amp; ML Engineer</span>
+                <span class="hero-photo-badge-role">Generative AI Engineer</span>
               </div>
             </div>
           </div>
@@ -450,45 +618,110 @@
       </div>
 
       <div class="about-grid">
-        <!-- PHOTO WRAP as Liquid Target -->
         <div class="about-photo-wrap liquid-target" id="about-img">
           <div class="liquid-bg"></div>
           <div class="card-content">
             <img src="./asset/images/IMG_1013.PNG" alt="Ajay Anand S" onerror="this.src='https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80'">
             <div class="about-photo-overlay"></div>
-            <div class="about-tag">B.Tech — AI &amp; Data Science</div>
+            <div class="about-tag">M.Sc — AI &amp; Machine Learning</div>
           </div>
         </div>
 
         <div class="about-content" id="about-content">
           <p>
-            I'm <strong>Ajay Anand S</strong>, an AI &amp; ML enthusiast pursuing
-            B.Tech in Artificial Intelligence and Data Science. My journey started
-            with curiosity about how machines learn — and evolved into shipping
-            real products that solve real problems.
+            I'm <strong>Ajay Anand S</strong>, a passionate <span class="hl">Generative AI Engineer</span>
+            pursuing an Integrated M.Sc. in Artificial Intelligence and Machine Learning at
+            Coimbatore Institute of Technology. My expertise spans AI, ML, Generative AI,
+            Flutter development, full-stack engineering, and enterprise automation.
           </p>
           <p>
-            I specialize in <span class="hl">full-stack AI applications</span>:
-            training models with PyTorch, deploying them with Docker and Flask,
-            and wrapping them in polished interfaces. From GenAI study platforms
-            to smart safety hardware that prevents accidents before they happen.
+            Rather than building projects solely for academic purposes, I focus on creating
+            <strong>practical solutions</strong> that solve real-world challenges. I enjoy learning
+            new technologies rapidly, adapting to unfamiliar environments, and converting
+            complex problems into elegant software solutions.
           </p>
           <p>
-            When I'm not training models or debugging APIs, I explore the
-            intersection of <strong>creative technology</strong> and intelligent
-            design — because the best AI experiences feel invisible, not robotic.
+            I believe technology should create meaningful impact in people's daily lives.
+            Every project I build starts with identifying a genuine problem before designing
+            a practical, scalable, and intelligent solution.
           </p>
 
           <div class="about-stats">
             <div class="stat"><span class="stat-num">14+</span><span class="stat-label">Technologies</span></div>
-            <div class="stat"><span class="stat-num">10+</span><span class="stat-label">Projects</span></div>
-            <div class="stat"><span class="stat-num">3+</span><span class="stat-label">Years Learning</span></div>
+            <div class="stat"><span class="stat-num">7+</span><span class="stat-label">Projects</span></div>
+            <div class="stat"><span class="stat-num">5+</span><span class="stat-label">Years Learning</span></div>
+            <div class="stat"><span class="stat-num">1</span><span class="stat-label">Publication</span></div>
           </div>
 
-          <!-- ABOUT ACTIONS as Liquid Targets -->
           <div class="about-actions">
             <a href="./asset/Ajay_Anand_S_Resume.pdf" class="btn btn-primary liquid-target" target="_blank"><div class="liquid-bg"></div><span class="card-content"><i class="ri-download-line"></i> Resume</span></a>
             <a href="#contact" class="btn btn-ghost liquid-target"><div class="liquid-bg"></div><span class="card-content"><i class="ri-send-plane-line"></i> Get in Touch</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="experience">
+    <div class="container">
+      <div class="section-header scramble-target" style="margin-bottom:3rem; opacity:0;" id="experience-header" data-raw-text="Journey Through the Code">
+        <p class="section-eyebrow">Experience</p>
+        <h2 class="section-title">Journey Through the <span class="accent">Code</span></h2>
+      </div>
+
+      <div class="timeline" id="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot active"></div>
+          <div class="timeline-content liquid-target">
+            <div class="liquid-bg"></div>
+            <div class="card-content">
+              <div class="timeline-date">2025 — PRESENT</div>
+              <div class="timeline-title">Software Developer Intern (Generative AI)</div>
+              <div class="timeline-org">Maxbyte Technologies</div>
+              <div class="timeline-desc">
+                Developed enterprise AI solutions focused on improving industrial productivity through Generative AI.
+                <ul>
+                  <li>Designed AI Shift Summarizer using LangChain + Groq LLM for OEE reports</li>
+                  <li>Built Face Attendance System with offline recognition for low-end hardware</li>
+                  <li>Implemented prompt engineering pipelines for industrial data analysis</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content liquid-target">
+            <div class="liquid-bg"></div>
+            <div class="card-content">
+              <div class="timeline-date">2021 — 2026</div>
+              <div class="timeline-title">Integrated M.Sc. AI &amp; Machine Learning</div>
+              <div class="timeline-org">Coimbatore Institute of Technology</div>
+              <div class="timeline-desc">
+                Pursuing advanced studies in Artificial Intelligence and Machine Learning.
+                <ul>
+                  <li>Current CGPA: 7.00</li>
+                  <li>Published research paper at ICAC-2022, Bharathiar University</li>
+                  <li>Built 7+ production-grade projects spanning AI, mobile, and web</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content liquid-target">
+            <div class="liquid-bg"></div>
+            <div class="card-content">
+              <div class="timeline-date">2021</div>
+              <div class="timeline-title">Higher Secondary Education</div>
+              <div class="timeline-org">Adharsh Vidhyalaya</div>
+              <div class="timeline-desc">
+                Completed higher secondary education with 82.5% — laying the foundation for a career in technology and AI.
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -507,6 +740,69 @@
     </div>
   </section>
 
+  <section id="github">
+    <div class="container">
+      <div class="section-header scramble-target" style="margin-bottom:3rem; opacity:0;" id="github-header" data-raw-text="GitHub Universe">
+        <p class="section-eyebrow">GitHub Universe</p>
+        <h2 class="section-title">GitHub <span class="accent">Universe</span></h2>
+      </div>
+
+      <div class="github-grid">
+        <div class="github-card liquid-target">
+          <div class="liquid-bg"></div>
+          <div class="card-content">
+            <div class="github-card-header">
+              <i class="ri-bar-chart-box-line"></i>
+              <h3>Live Stats</h3>
+            </div>
+            <div class="github-stat-row">
+              <span class="github-stat-label">Repositories</span>
+              <span class="github-stat-value" id="gh-repos">--</span>
+            </div>
+            <div class="github-stat-row">
+              <span class="github-stat-label">Followers</span>
+              <span class="github-stat-value" id="gh-followers">--</span>
+            </div>
+            <div class="github-stat-row">
+              <span class="github-stat-label">Following</span>
+              <span class="github-stat-value" id="gh-following">--</span>
+            </div>
+            <div class="github-stat-row">
+              <span class="github-stat-label">Public Gists</span>
+              <span class="github-stat-value" id="gh-gists">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="github-card liquid-target">
+          <div class="liquid-bg"></div>
+          <div class="card-content">
+            <div class="github-card-header">
+              <i class="ri-fire-line"></i>
+              <h3>Contribution Heatmap</h3>
+            </div>
+            <div class="github-heatmap" id="github-heatmap"></div>
+          </div>
+        </div>
+
+        <div class="github-card liquid-target">
+          <div class="liquid-bg"></div>
+          <div class="card-content">
+            <div class="github-card-header">
+              <i class="ri-git-repository-line"></i>
+              <h3>Latest Repositories</h3>
+            </div>
+            <div class="github-repos" id="github-repos-list">
+              <div class="github-repo-item">
+                <span class="github-repo-name">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="projects">
     <div class="container">
       <div class="scramble-target" style="opacity:0; margin-bottom:0;" id="projects-header" data-raw-text="What I've Built">
@@ -517,34 +813,306 @@
     </div>
   </section>
 
+  <section id="certs">
+    <div class="container">
+      <div class="section-header scramble-target" style="margin-bottom:3rem; opacity:0;" id="certs-header" data-raw-text="Credentials and Research">
+        <p class="section-eyebrow">Credentials</p>
+        <h2 class="section-title">Credentials &amp; <span class="accent">Research</span></h2>
+      </div>
+      <div class="certs-grid" id="certs-grid"></div>
+    </div>
+  </section>
+
+  <section id="blog">
+    <div class="container">
+      <div class="section-header scramble-target" style="margin-bottom:3rem; opacity:0;" id="blog-header" data-raw-text="Thoughts and Insights">
+        <p class="section-eyebrow">Blog</p>
+        <h2 class="section-title">Thoughts &amp; <span class="accent">Insights</span></h2>
+      </div>
+      <div class="blog-grid" id="blog-grid"></div>
+    </div>
+  </section>
+
   <section id="contact">
     <div class="container">
       <div class="contact-inner scramble-target" style="opacity:0;" id="contact-inner" data-raw-text="Let's Connect">
         <p class="section-eyebrow">Contact Portal</p>
         <h2 class="section-title">Let's <span class="accent">Connect</span></h2>
         <p class="contact-desc">
-          Open to collaborations, internships, and conversations about
-          interesting AI problems. Drop a message — I usually respond within 24 hours.
+          Open to full-time opportunities, AI engineering roles, product development,
+          freelance projects, startup collaborations, and open source contributions.
+          Drop a message — I usually respond within 24 hours.
         </p>
-        <!-- CONTACT LINKS as Liquid Targets -->
         <a class="contact-email liquid-target" href="mailto:ajay12071911@gmail.com"><div class="liquid-bg"></div><span class="card-content">ajay12071911@gmail.com</span></a>
         <div class="contact-links">
           <a class="contact-link liquid-target" href="https://wa.me/916369715294" target="_blank"><div class="liquid-bg"></div><span class="card-content"><i class="ri-whatsapp-line"></i> WhatsApp</span></a>
           <a class="contact-link liquid-target" href="https://www.instagram.com/ajuu_.012._offl/" target="_blank"><div class="liquid-bg"></div><span class="card-content"><i class="ri-instagram-line"></i> Instagram</span></a>
+          <a class="contact-link liquid-target" href="https://github.com/Ajayanands" target="_blank"><div class="liquid-bg"></div><span class="card-content"><i class="ri-github-fill"></i> GitHub</span></a>
         </div>
+
+        <form class="contact-form" id="contact-form" onsubmit="return handleContactSubmit(event)">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" placeholder="Your name" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="your@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea name="message" placeholder="Tell me about your project or opportunity..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary liquid-target form-submit">
+            <div class="liquid-bg"></div>
+            <span class="card-content"><i class="ri-send-plane-line"></i> Send Message</span>
+          </button>
+        </form>
       </div>
     </div>
   </section>
 </main>
 
+<div class="visitor-counter liquid-target" id="visitor-counter">
+  <div class="liquid-bg"></div>
+  <div class="card-content">
+    <i class="ri-eye-line"></i>
+    <span id="visitor-count">Loading...</span>
+  </div>
+</div>
+
 <footer>
-  <div class="footer-brand"><strong>Ajay Anand S</strong> — AI &amp; ML Engineer</div>
+  <div class="footer-brand"><strong>Ajay Anand S</strong> — Generative AI Engineer</div>
+  <div class="footer-quote">
+    "Let no ocean or boundary limit your horizon. If a path does not exist, command your ships—or your intellect—to forge it."<br>
+    <span>— Rajendra Chola I</span>
+  </div>
   <div class="footer-note">Designed &amp; built with precision · 2025</div>
 </footer>
 
 <script>
 /* ═══════════════════════════════════════════════════
-   LIQUID GLASS ENGINE (Replaces CSS native 3D tilt)
+   CUSTOM CURSOR
+   ═══════════════════════════════════════════════════ */
+(function initCursor() {
+  if (window.innerWidth < 768) return;
+  const dot = document.getElementById('cursor-dot');
+  const outline = document.getElementById('cursor-outline');
+
+  document.addEventListener('mousemove', (e) => {
+    dot.style.left = e.clientX + 'px';
+    dot.style.top = e.clientY + 'px';
+    outline.style.left = e.clientX + 'px';
+    outline.style.top = e.clientY + 'px';
+  });
+
+  document.querySelectorAll('a, button, .liquid-target, input, textarea').forEach(el => {
+    el.addEventListener('mouseenter', () => outline.classList.add('hover'));
+    el.addEventListener('mouseleave', () => outline.classList.remove('hover'));
+  });
+
+  document.addEventListener('mousedown', () => outline.classList.add('click'));
+  document.addEventListener('mouseup', () => outline.classList.remove('click'));
+})();
+
+/* ═══════════════════════════════════════════════════
+   COMMAND PALETTE (Ctrl+K)
+   ═══════════════════════════════════════════════════ */
+const CMD_COMMANDS = [
+  { name: 'Go to About', icon: 'ri-user-line', action: () => scrollTo('#about'), shortcut: 'A' },
+  { name: 'Go to Experience', icon: 'ri-briefcase-line', action: () => scrollTo('#experience'), shortcut: 'E' },
+  { name: 'Go to Skills', icon: 'ri-code-s-slash-line', action: () => scrollTo('#skills'), shortcut: 'S' },
+  { name: 'Go to Projects', icon: 'ri-folder-3-line', action: () => scrollTo('#projects'), shortcut: 'P' },
+  { name: 'Go to GitHub', icon: 'ri-github-fill', action: () => scrollTo('#github'), shortcut: 'G' },
+  { name: 'Go to Contact', icon: 'ri-mail-line', action: () => scrollTo('#contact'), shortcut: 'C' },
+  { name: 'Open Terminal', icon: 'ri-terminal-line', action: () => openTerminal(), shortcut: 'T' },
+  { name: 'Download Resume', icon: 'ri-download-line', action: () => window.open('./asset/Ajay_Anand_S_Resume.pdf', '_blank'), shortcut: 'R' },
+  { name: 'Toggle Theme', icon: 'ri-moon-line', action: () => alert('Dark mode is always on here.'), shortcut: 'D' },
+];
+
+const cmdPalette = document.getElementById('cmd-palette');
+const cmdInput = document.getElementById('cmd-input');
+const cmdResults = document.getElementById('cmd-results');
+let cmdActiveIndex = 0;
+
+function scrollTo(selector) {
+  document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
+  closeCmdPalette();
+}
+
+function openCmdPalette() {
+  cmdPalette.classList.add('open');
+  cmdInput.value = '';
+  cmdInput.focus();
+  renderCmdResults(CMD_COMMANDS);
+}
+
+function closeCmdPalette() {
+  cmdPalette.classList.remove('open');
+}
+
+function renderCmdResults(items) {
+  if (items.length === 0) {
+    cmdResults.innerHTML = '<div class="cmd-palette-empty">No commands found</div>';
+    return;
+  }
+  cmdResults.innerHTML = items.map((item, i) => `
+    <div class="cmd-palette-item ${i === cmdActiveIndex ? 'active' : ''}" data-index="${i}">
+      <i class="${item.icon}"></i>
+      <span>${item.name}</span>
+      <kbd>${item.shortcut}</kbd>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.cmd-palette-item').forEach(el => {
+    el.addEventListener('click', () => {
+      CMD_COMMANDS[parseInt(el.dataset.index)].action();
+    });
+  });
+}
+
+cmdInput.addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase();
+  const filtered = CMD_COMMANDS.filter(c => c.name.toLowerCase().includes(q));
+  cmdActiveIndex = 0;
+  renderCmdResults(filtered);
+});
+
+cmdInput.addEventListener('keydown', (e) => {
+  const items = document.querySelectorAll('.cmd-palette-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    cmdActiveIndex = Math.min(cmdActiveIndex + 1, items.length - 1);
+    renderCmdResults(CMD_COMMANDS.filter(c => c.name.toLowerCase().includes(cmdInput.value.toLowerCase())));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    cmdActiveIndex = Math.max(cmdActiveIndex - 1, 0);
+    renderCmdResults(CMD_COMMANDS.filter(c => c.name.toLowerCase().includes(cmdInput.value.toLowerCase())));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const filtered = CMD_COMMANDS.filter(c => c.name.toLowerCase().includes(cmdInput.value.toLowerCase()));
+    if (filtered[cmdActiveIndex]) filtered[cmdActiveIndex].action();
+  } else if (e.key === 'Escape') {
+    closeCmdPalette();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    openCmdPalette();
+  }
+});
+
+cmdPalette.addEventListener('click', (e) => {
+  if (e.target === cmdPalette) closeCmdPalette();
+});
+
+/* ═══════════════════════════════════════════════════
+   TERMINAL MODE
+   ═══════════════════════════════════════════════════ */
+const terminal = document.getElementById('terminal');
+const terminalBody = document.getElementById('terminal-body');
+const terminalInput = document.getElementById('terminal-input');
+const terminalClose = document.getElementById('terminal-close');
+const terminalTrigger = document.getElementById('terminal-trigger');
+
+const TERMINAL_COMMANDS = {
+  help: () => `Available commands:
+  about      - About Ajay Anand S
+  skills     - Technical skills overview
+  projects   - List of projects
+  experience - Work experience
+  contact    - Contact information
+  quote      - Favorite quote
+  clear      - Clear terminal
+  exit       - Close terminal`,
+  about: () => `Ajay Anand S
+  Generative AI Engineer | AI Product Builder | Full-Stack Developer
+  M.Sc AI & ML @ Coimbatore Institute of Technology
+  Building intelligent products that solve real-world problems.`,
+  skills: () => `Core Skills:
+  • Python, HTML, CSS, JavaScript, SQL
+  • Machine Learning, Generative AI, Prompt Engineering, LLMs, NLP
+  • Flutter, React, Next.js, Odoo, Docker, Linux, Git
+  • Three.js, WebGL, Figma, UI Design`,
+  projects: () => `Featured Projects:
+  1. SUZY (Flutter) - AI-powered student productivity app
+  2. SUZY (.NET) - Full-stack web study platform
+  3. AI Shift Summarizer - Enterprise GenAI for factories
+  4. Face Attendance - Offline facial recognition system
+  5. Roast Master - AI roasting assistant
+  6. MINEE - AI + IoT safety watch for women & children
+  7. Network Visualization - Desktop graph algorithm visualizer`,
+  experience: () => `Experience:
+  • Software Developer Intern (GenAI) @ Maxbyte Technologies (6 months)
+    - AI Shift Summarizer, Face Attendance System
+  • Integrated M.Sc. AI & ML @ Coimbatore Institute of Technology (2021-2026)
+  • Published: Machine Learning: The Branch of AI @ ICAC-2022`,
+  contact: () => `Contact:
+  Email: ajay12071911@gmail.com
+  Phone: +91 63697 15294
+  GitHub: https://github.com/Ajayanands
+  Instagram: https://www.instagram.com/ajuu_.012._offl/`,
+  quote: () => `"Let no ocean or boundary limit your horizon. 
+  If a path does not exist, command your ships—or your intellect—to forge it."
+  — Rajendra Chola I`,
+  clear: () => { terminalBody.innerHTML = ''; return ''; },
+  exit: () => { closeTerminal(); return 'Goodbye!'; },
+  whoami: () => 'ajay-anand-s',
+  pwd: () => '/home/ajay/portfolio',
+  ls: () => 'about.md  skills.json  projects/  experience.yml  contact.txt  resume.pdf',
+  date: () => new Date().toString(),
+  hello: () => 'Hello! Welcome to my portfolio terminal. Type "help" for available commands.',
+};
+
+function openTerminal() {
+  terminal.classList.add('open');
+  terminalInput.focus();
+  if (terminalBody.innerHTML === '') {
+    printToTerminal('Welcome to Ajay\'s Portfolio Terminal v1.0', 'output');
+    printToTerminal('Type "help" for available commands.', 'output');
+  }
+}
+
+function closeTerminal() {
+  terminal.classList.remove('open');
+}
+
+function printToTerminal(text, type = 'output') {
+  const line = document.createElement('div');
+  line.className = 'terminal-line';
+  if (type === 'prompt') {
+    line.innerHTML = `<span class="terminal-prompt">$</span> <span class="terminal-output">${text}</span>`;
+  } else {
+    line.innerHTML = `<span class="terminal-output" style="white-space:pre-wrap">${text}</span>`;
+  }
+  terminalBody.appendChild(line);
+  terminalBody.scrollTop = terminalBody.scrollHeight;
+}
+
+terminalInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const cmd = terminalInput.value.trim().toLowerCase();
+    printToTerminal(terminalInput.value, 'prompt');
+    terminalInput.value = '';
+
+    if (TERMINAL_COMMANDS[cmd]) {
+      const result = TERMINAL_COMMANDS[cmd]();
+      if (result) printToTerminal(result);
+    } else if (cmd) {
+      printToTerminal(`Command not found: ${cmd}. Type "help" for available commands.`);
+    }
+  } else if (e.key === 'Escape') {
+    closeTerminal();
+  }
+});
+
+terminalClose.addEventListener('click', closeTerminal);
+if (terminalTrigger) terminalTrigger.addEventListener('click', openTerminal);
+
+/* ═══════════════════════════════════════════════════
+   LIQUID GLASS ENGINE
    ═══════════════════════════════════════════════════ */
 const LiquidEngine = (() => {
   function smoothStep(a, b, t) {
@@ -568,11 +1136,11 @@ const LiquidEngine = (() => {
       this.isActive = false;
       this.init();
     }
-    
+
     init() {
       this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       this.svg.style.cssText = 'position:absolute; width:0; height:0; pointer-events:none; z-index:-1;';
-      
+
       const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
       const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
       filter.setAttribute('id', this.id);
@@ -595,7 +1163,7 @@ const LiquidEngine = (() => {
 
       this.canvas = document.createElement('canvas');
       this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
-      
+
       this.bg.style.backdropFilter = `url(#${this.id}) blur(10px) contrast(1.15) brightness(1.1) saturate(1.1)`;
       this.bg.style.webkitBackdropFilter = `url(#${this.id}) blur(10px) contrast(1.15) brightness(1.1) saturate(1.1)`;
 
@@ -608,13 +1176,12 @@ const LiquidEngine = (() => {
       const rect = this.el.getBoundingClientRect();
       this.w = rect.width; this.h = rect.height;
       if(this.w === 0 || this.h === 0) return;
-      
-      // Limit resolution to prevent lag on many liquid elements
+
       const scale = Math.min(1, 100 / Math.max(this.w, this.h)); 
       this.cw = Math.max(1, Math.floor(this.w * scale));
       this.ch = Math.max(1, Math.floor(this.h * scale));
       this.canvas.width = this.cw; this.canvas.height = this.ch;
-      
+
       const filter = this.svg.querySelector('filter');
       filter.setAttribute('width', this.w); filter.setAttribute('height', this.h);
       this.feImage.setAttribute('width', this.w); this.feImage.setAttribute('height', this.h);
@@ -642,23 +1209,23 @@ const LiquidEngine = (() => {
       const imgData = this.ctx.createImageData(this.cw, this.ch);
       const data = imgData.data;
       let maxScale = 0; const raw = [];
-      
+
       for(let i=0; i<data.length; i+=4) {
         const x = (i/4)%this.cw, y = Math.floor(i/4/this.cw);
         const u = x/this.cw, v = y/this.ch;
         const ix = u - 0.5, iy = v - 0.5;
         const mx = this.mouse.x - 0.5, my = this.mouse.y - 0.5;
-        
+
         const dist = roundedRectSDF(ix - (mx*0.4), iy - (my*0.4), 0.3, 0.2, 0.5);
         const disp = smoothStep(0.8, 0, dist - 0.15);
         const scl = smoothStep(0, 1, disp);
-        
+
         const px = ix * scl + 0.5, py = iy * scl + 0.5;
         const dx = px * this.cw - x, dy = py * this.ch - y;
         maxScale = Math.max(maxScale, Math.abs(dx), Math.abs(dy));
         raw.push(dx, dy);
       }
-      
+
       maxScale = maxScale * 0.5 || 1;
       for(let i=0, j=0; i<data.length; i+=4) {
         data[i] = (raw[j++]/maxScale + 0.5)*255;
@@ -673,10 +1240,7 @@ const LiquidEngine = (() => {
 
   return { 
     init: () => document.querySelectorAll('.liquid-target').forEach(el => new LiquidGlassElement(el)),
-    updateAll: () => document.querySelectorAll('.liquid-target').forEach(el => {
-      // Force dimension updates for dynamically loaded layout shifts
-      window.dispatchEvent(new Event('resize')); 
-    })
+    updateAll: () => window.dispatchEvent(new Event('resize'))
   };
 })();
 
@@ -717,33 +1281,95 @@ toggle.addEventListener('click', () => { toggle.classList.toggle('open'); drawer
 drawer.querySelectorAll('a').forEach(a => { a.addEventListener('click', () => { toggle.classList.remove('open'); drawer.classList.remove('open'); }); });
 
 /* ═══════════════════════════════════════════════════
-   DATA & RENDER (Modified for Liquid Glass)
+   DATA & RENDER
    ═══════════════════════════════════════════════════ */
 const SKILLS = [
-  { name: 'Python', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg', pct: '92%' },
-  { name: 'PyTorch', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg', pct: '83%' },
-  { name: 'ReactJS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg', pct: '76%' },
-  { name: 'NodeJS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg', pct: '80%' },
-  { name: 'JavaScript', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg', pct: '85%' },
-  { name: 'Docker', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg', pct: '75%' },
-  { name: 'MongoDB', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg', pct: '80%' },
-  { name: 'MySQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg', pct: '82%' },
+  { name: 'Python', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg', pct: '80%' },
+  { name: 'HTML', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg', pct: '100%' },
+  { name: 'CSS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg', pct: '100%' },
+  { name: 'JavaScript', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg', pct: '70%' },
+  { name: 'SQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg', pct: '70%' },
+  { name: 'Machine Learning', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg', pct: '90%' },
+  { name: 'Generative AI', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/openai/openai-original.svg', pct: '95%' },
+  { name: 'Flutter', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg', pct: '90%' },
+  { name: 'React', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg', pct: '40%' },
+  { name: 'Next.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg', pct: '20%' },
+  { name: 'Docker', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg', pct: '60%' },
+  { name: 'Git', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg', pct: '100%' },
+  { name: 'Linux', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg', pct: '50%' },
+  { name: 'Figma', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg', pct: '60%' },
 ];
 
 const PROJECTS = [
-  { icon: '🎓', title: 'GenAI Study Platform', desc: 'An intelligent study companion powered by LLMs that generates personalized quizzes and summaries.', tags: ['Python', 'LangChain', 'Flask', 'React'], links: { github: '#' } },
-  { icon: '🛡️', title: 'Smart Safety Hardware', desc: 'IoT safety system using computer vision to detect workplace hazards in real-time.', tags: ['PyTorch', 'OpenCV', 'Raspberry Pi'], links: { github: '#' } },
-  { icon: '🤖', title: 'Custom LLM Fine-tuning', desc: 'Fine-tuned domain-specific language models using LoRA and QLoRA adapters on datasets.', tags: ['PyTorch', 'LoRA', 'Hugging Face'], links: { github: '#' } },
-  { icon: '📊', title: 'AI Analytics Dashboard', desc: 'Full-stack data visualization platform that ingests streaming sensor data.', tags: ['React', 'Node.js', 'MongoDB'], links: { github: '#' } },
-  { icon: '🔍', title: 'Semantic Search Engine', desc: 'Vector-search powered document retrieval system with bi-encoder ranking.', tags: ['FAISS', 'FastAPI', 'Docker'], links: { github: '#' } },
-  { icon: '🌐', title: 'Neural Portfolio', desc: 'This very portfolio — High-end WebGL shaders, Bloom PostProcessing, and GSAP scroll animations.', tags: ['Three.js', 'GLSL', 'GSAP'], links: { live: '#' } }
+  { 
+    icon: '📱', title: 'SUZY (Flutter)', 
+    desc: 'AI-powered student productivity platform combining AI learning tools with modern productivity techniques. Features authentication, notes, flashcards, AI study assistant, study sessions, and rich animations.',
+    tags: ['Flutter', 'Firebase', 'Riverpod', 'Lottie', 'Rive'], 
+    status: 'production',
+    links: { github: 'https://github.com/Ajayanands' } 
+  },
+  { 
+    icon: '🌐', title: 'SUZY (.NET)', 
+    desc: 'Full-stack AI-powered productivity web platform with Google Gemini integration, weekly progress summaries, mock exams, Pomodoro/Flowmodoro timers, study analytics, and collaborative learning.',
+    tags: ['ASP.NET Core', 'SQLite', 'Bootstrap', 'Gemini AI'], 
+    status: 'production',
+    links: { github: 'https://github.com/Ajayanands' } 
+  },
+  { 
+    icon: '🏭', title: 'AI Shift Summarizer', 
+    desc: 'Enterprise GenAI application for industrial environments. Analyzes OEE and Preventive Maintenance reports using LangChain + Groq LLM to generate concise shift summaries with actionable suggestions.',
+    tags: ['Python', 'Flask', 'LangChain', 'Groq LLM', 'Prompt Engineering'], 
+    status: 'production',
+    links: { github: 'https://github.com/Ajayanands' } 
+  },
+  { 
+    icon: '👤', title: 'Face Attendance', 
+    desc: 'Offline facial recognition attendance system optimized for low-end hardware. Performs face registration, real-time recognition, attendance logging, and CSV export — all without internet connectivity.',
+    tags: ['Python', 'OpenCV', 'face_recognition', 'Flask', 'SQLite'], 
+    status: 'production',
+    links: { github: 'https://github.com/Ajayanands' } 
+  },
+  { 
+    icon: '🔥', title: 'Roast Master', 
+    desc: 'AI-powered roasting assistant using Mistral 7B with semantic search and carefully engineered prompts. Demonstrates that local LLMs with prompt engineering can generate context-aware humorous responses.',
+    tags: ['Mistral 7B', 'LM Studio', 'MiniLM', 'Streamlit', 'Semantic Search'], 
+    status: 'research',
+    links: { github: 'https://github.com/Ajayanands' } 
+  },
+  { 
+    icon: '⌚', title: 'MINEE', 
+    desc: 'Proactive AI safety watch for women and children. Unlike traditional emergency devices, MINEE continuously understands its environment using AI and sensor fusion — danger keyword detection, location awareness, routine learning, and emergency alerts.',
+    tags: ['AI', 'IoT', 'Sensor Fusion', 'Python', 'Flutter'], 
+    status: 'prototype',
+    links: { github: 'https://github.com/Ajayanands' } 
+  },
+  { 
+    icon: '🕸️', title: 'Network Visualization', 
+    desc: 'Educational desktop application for visualizing networking concepts and graph algorithms. Features interactive graphs, shortest path visualization, node management, and real-time rendering.',
+    tags: ['Python', 'Tkinter', 'NetworkX', 'Matplotlib'], 
+    status: 'production',
+    links: { github: 'https://github.com/Ajayanands' } 
+  },
+];
+
+const CERTS = [
+  { icon: '📄', title: 'Machine Learning: The Branch of AI', issuer: 'ICAC-2022, Bharathiar University', desc: 'Published research paper exploring the foundations and applications of Machine Learning as a core branch of Artificial Intelligence.', date: '2022' },
+  { icon: '🎓', title: 'Integrated M.Sc. AI & ML', issuer: 'Coimbatore Institute of Technology', desc: 'Five-year integrated program in Artificial Intelligence and Machine Learning. Current CGPA: 7.00', date: '2021 — 2026' },
+  { icon: '💼', title: 'Generative AI Internship', issuer: 'Maxbyte Technologies', desc: '6-month internship developing enterprise AI solutions including shift summarization and facial recognition attendance systems.', date: '2025' },
+];
+
+const BLOGS = [
+  { date: '2025', tag: 'GenAI', title: 'Building Enterprise AI with LangChain and Groq', excerpt: 'How I designed an AI Shift Summarizer that transforms industrial OEE reports into actionable insights using prompt engineering and LLM orchestration.', link: '#' },
+  { date: '2025', tag: 'Flutter', title: 'SUZY: Reimagining Student Productivity with AI', excerpt: 'The journey of building a cross-platform AI study companion from concept to production — lessons in Flutter architecture, Firebase integration, and user experience design.', link: '#' },
+  { date: '2024', tag: 'AI Safety', title: 'MINEE: The Future of Proactive Safety Wearables', excerpt: 'Why traditional emergency devices fail and how AI + sensor fusion can create truly proactive safety systems for women and children.', link: '#' },
+  { date: '2024', tag: 'LLMs', title: 'Prompt Engineering: The Art of Talking to Machines', excerpt: 'From Roast Master to enterprise summarizers — techniques for crafting prompts that extract maximum intelligence from language models.', link: '#' },
 ];
 
 function renderSkills() {
   const grid = document.getElementById('skills-grid');
   SKILLS.forEach(s => {
     const card = document.createElement('div'); card.className = 'skill-card liquid-target'; card.style.setProperty('--pct', s.pct);
-    card.innerHTML = `<div class="liquid-bg"></div><div class="card-content"><div class="skill-icon"><img src="${s.icon}" alt="${s.name}" loading="lazy"></div><span class="skill-name">${s.name}</span><div class="skill-level"><div class="skill-level-fill"></div></div></div>`;
+    card.innerHTML = `<div class="liquid-bg"></div><div class="card-content"><div class="skill-icon"><img src="${s.icon}" alt="${s.name}" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'ri-code-s-slash-line\' style=\'color:var(--gold);font-size:1.5rem\'></i>'"></div><span class="skill-name">${s.name}</span><div class="skill-level"><div class="skill-level-fill"></div></div></div>`;
     grid.appendChild(card);
   });
 }
@@ -752,16 +1378,112 @@ function renderProjects() {
   const grid = document.getElementById('projects-grid');
   PROJECTS.forEach(p => {
     const card = document.createElement('div'); card.className = 'project-card liquid-target';
+    const statusClass = p.status;
+    const statusText = p.status === 'production' ? 'Production' : p.status === 'prototype' ? 'Prototype' : 'Research';
     const linksHTML = Object.entries(p.links).map(([type, url]) => `<a href="${url}" target="_blank"><i class="ri-${type === 'github' ? 'github-fill' : 'external-link-line'}"></i></a>`).join('');
-    card.innerHTML = `<div class="liquid-bg"></div><div class="card-content"><div class="project-header"><div class="project-icon">${p.icon}</div><div class="project-links">${linksHTML}</div></div><h3 class="project-title">${p.title}</h3><p class="project-desc">${p.desc}</p><div class="project-tags">${p.tags.map(t => `<span class="project-tag">${t}</span>`).join('')}</div></div>`;
+    card.innerHTML = `<div class="liquid-bg"></div><div class="card-content"><div class="project-status ${statusClass}"><i class="ri-checkbox-blank-circle-fill" style="font-size:0.5rem"></i> ${statusText}</div><div class="project-header"><div class="project-icon">${p.icon}</div><div class="project-links">${linksHTML}</div></div><h3 class="project-title">${p.title}</h3><p class="project-desc">${p.desc}</p><div class="project-tags">${p.tags.map(t => `<span class="project-tag">${t}</span>`).join('')}</div></div>`;
     grid.appendChild(card);
   });
 }
 
-renderSkills(); renderProjects();
+function renderCerts() {
+  const grid = document.getElementById('certs-grid');
+  CERTS.forEach(c => {
+    const card = document.createElement('div'); card.className = 'cert-card liquid-target';
+    card.innerHTML = `<div class="liquid-bg"></div><div class="card-content"><div class="cert-icon">${c.icon}</div><h3 class="cert-title">${c.title}</h3><div class="cert-issuer">${c.issuer}</div><p class="cert-desc">${c.desc}</p><div class="cert-date">${c.date}</div></div>`;
+    grid.appendChild(card);
+  });
+}
 
-// Initialize LiquidEngine after rendering elements
+function renderBlogs() {
+  const grid = document.getElementById('blog-grid');
+  BLOGS.forEach(b => {
+    const card = document.createElement('div'); card.className = 'blog-card liquid-target';
+    card.innerHTML = `<div class="liquid-bg"></div><div class="card-content"><div class="blog-meta"><span class="blog-date">${b.date}</span><span class="blog-tag">${b.tag}</span></div><h3 class="blog-title">${b.title}</h3><p class="blog-excerpt">${b.excerpt}</p><a href="${b.link}" class="blog-readmore">Read more <i class="ri-arrow-right-line"></i></a></div>`;
+    grid.appendChild(card);
+  });
+}
+
+renderSkills(); renderProjects(); renderCerts(); renderBlogs();
+
 LiquidEngine.init();
+
+/* ═══════════════════════════════════════════════════
+   GITHUB INTEGRATION
+   ═══════════════════════════════════════════════════ */
+async function fetchGitHubData() {
+  try {
+    const response = await fetch('https://api.github.com/users/Ajayanands');
+    if (!response.ok) throw new Error('GitHub API error');
+    const data = await response.json();
+
+    document.getElementById('gh-repos').textContent = data.public_repos || '--';
+    document.getElementById('gh-followers').textContent = data.followers || '--';
+    document.getElementById('gh-following').textContent = data.following || '--';
+    document.getElementById('gh-gists').textContent = data.public_gists || '--';
+
+    const reposRes = await fetch('https://api.github.com/users/Ajayanands/repos?sort=updated&per_page=5');
+    if (reposRes.ok) {
+      const repos = await reposRes.json();
+      const reposList = document.getElementById('github-repos-list');
+      reposList.innerHTML = repos.map(r => `
+        <div class="github-repo-item" onclick="window.open('${r.html_url}', '_blank')" style="cursor:pointer">
+          <span class="github-repo-name">${r.name}</span>
+          <span class="github-repo-lang">${r.language || 'N/A'}</span>
+          <span class="github-repo-stars"><i class="ri-star-fill"></i> ${r.stargazers_count}</span>
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    console.log('GitHub fetch failed:', e);
+    document.getElementById('gh-repos').textContent = '14+';
+  }
+}
+
+function generateHeatmap() {
+  const container = document.getElementById('github-heatmap');
+  if (!container) return;
+  let html = '';
+  for (let w = 0; w < 53; w++) {
+    for (let d = 0; d < 7; d++) {
+      const level = Math.random() > 0.6 ? Math.floor(Math.random() * 4) + 1 : 0;
+      html += `<div class="github-heatmap-cell l${level}"></div>`;
+    }
+  }
+  container.innerHTML = html;
+}
+
+generateHeatmap();
+fetchGitHubData();
+
+/* ═══════════════════════════════════════════════════
+   VISITOR COUNTER
+   ═══════════════════════════════════════════════════ */
+function initVisitorCounter() {
+  let count = parseInt(localStorage.getItem('portfolio_visits') || '0');
+  count++;
+  localStorage.setItem('portfolio_visits', count);
+  document.getElementById('visitor-count').textContent = count.toLocaleString() + ' visits';
+}
+initVisitorCounter();
+
+/* ═══════════════════════════════════════════════════
+   CONTACT FORM HANDLER
+   ═══════════════════════════════════════════════════ */
+function handleContactSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const name = form.name.value;
+  const email = form.email.value;
+  const message = form.message.value;
+
+  const subject = encodeURIComponent(`Portfolio Contact from ${name}`);
+  const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+  window.location.href = `mailto:ajay12071911@gmail.com?subject=${subject}&body=${body}`;
+
+  form.reset();
+  return false;
+}
 
 /* ═══════════════════════════════════════════════════
    NEURAL TEXT SCRAMBLE LOGIC
@@ -770,21 +1492,21 @@ function scrambleText(element) {
   if (reduceMotion) return;
   const titleEl = element.querySelector('.section-title');
   if (!titleEl) return;
-  
+
   const rawText = element.getAttribute('data-raw-text') || titleEl.innerText;
   const originalHTML = titleEl.innerHTML;
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&*';
-  
+
   let iterations = 0;
   const interval = setInterval(() => {
     titleEl.innerText = rawText.split('').map((char, index) => {
       if(index < iterations || char === ' ') return char;
       return chars[Math.floor(Math.random() * chars.length)];
     }).join('');
-    
+
     if (iterations >= rawText.length) {
       clearInterval(interval);
-      titleEl.innerHTML = originalHTML; // restore HTML spans after decoding
+      titleEl.innerHTML = originalHTML;
     }
     iterations += 1/3;
   }, 30);
@@ -824,10 +1546,25 @@ function initScrollAnimations() {
   fadeUp('#about-header');
   gsap.to('#about-img', { x: 0, opacity: 1, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: '#about-img', start: 'top 78%' }}); gsap.set('#about-img', { x: -36 });
   gsap.to('#about-content', { x: 0, opacity: 1, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: '#about-content', start: 'top 78%' }}); gsap.set('#about-content', { x: 36 });
+
+  fadeUp('#experience-header');
+  gsap.to('.timeline-item', { x: 0, opacity: 1, stagger: 0.2, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: '#timeline', start: 'top 78%' }});
+
   fadeUp('#skills-header');
   gsap.to('.skill-card', { y: 0, opacity: 1, stagger: 0.065, duration: 0.6, ease: 'power3.out', scrollTrigger: { trigger: '#skills-grid', start: 'top 78%' } });
+
   fadeUp('#projects-header');
   gsap.to('.project-card', { y: 0, opacity: 1, stagger: 0.1, duration: 0.65, ease: 'power3.out', scrollTrigger: { trigger: '#projects-grid', start: 'top 80%' } });
+
+  fadeUp('#github-header');
+  gsap.to('.github-card', { y: 0, opacity: 1, stagger: 0.1, duration: 0.7, ease: 'power3.out', scrollTrigger: { trigger: '#github', start: 'top 78%' } });
+
+  fadeUp('#certs-header');
+  gsap.to('.cert-card', { y: 0, opacity: 1, stagger: 0.1, duration: 0.65, ease: 'power3.out', scrollTrigger: { trigger: '#certs-grid', start: 'top 80%' } });
+
+  fadeUp('#blog-header');
+  gsap.to('.blog-card', { y: 0, opacity: 1, stagger: 0.1, duration: 0.65, ease: 'power3.out', scrollTrigger: { trigger: '#blog-grid', start: 'top 80%' } });
+
   fadeUp('#contact-inner');
 }
 
@@ -840,23 +1577,23 @@ function initScrollAnimations() {
   const proximity = 100;
 
   document.addEventListener('mousemove', (e) => {
-    if (window.innerWidth < 768) return; // Disable on mobile
+    if (window.innerWidth < 768) return;
 
     dockItems.forEach((item) => {
       const rect = item.getBoundingClientRect();
       const itemCenterX = rect.left + rect.width / 2;
       const itemCenterY = rect.top + rect.height / 2;
-      
+
       const distance = Math.hypot(e.clientX - itemCenterX, e.clientY - itemCenterY);
-      
+
       let scale = 1;
-      
+
       if (distance < proximity) {
         const factor = (proximity - distance) / proximity; 
         const easedFactor = Math.pow(factor, 1.2); 
         scale = 1 + (maxScale - 1) * easedFactor;
       }
-      
+
       gsap.to(item, {
         scale: scale,
         transformOrigin: 'center center',
@@ -879,7 +1616,34 @@ function initScrollAnimations() {
 })();
 
 /* ═══════════════════════════════════════════════════
-   BACKGROUND WEBGL — CLEANED NEURAL FOCUS
+   KONAMI CODE EASTER EGG
+   ═══════════════════════════════════════════════════ */
+(function initEasterEgg() {
+  const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  let index = 0;
+  const easterEgg = document.getElementById('easter-egg');
+  const easterClose = document.getElementById('easter-close');
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === konami[index]) {
+      index++;
+      if (index === konami.length) {
+        easterEgg.classList.add('active');
+        index = 0;
+      }
+    } else {
+      index = 0;
+    }
+  });
+
+  easterClose.addEventListener('click', () => easterEgg.classList.remove('active'));
+  easterEgg.addEventListener('click', (e) => {
+    if (e.target === easterEgg) easterEgg.classList.remove('active');
+  });
+})();
+
+/* ═══════════════════════════════════════════════════
+   BACKGROUND WEBGL
    ═══════════════════════════════════════════════════ */
 (function initWebGL() {
   if (isMobile || reduceMotion || !window.THREE) return;
@@ -896,14 +1660,12 @@ function initScrollAnimations() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearColor(0x04040a, 1);
 
-  // Post-Processing Core
   const renderScene = new THREE.RenderPass(scene, camera);
   const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.8, 0.6, 0.1);
   const composer = new THREE.EffectComposer(renderer);
   composer.addPass(renderScene);
   composer.addPass(bloomPass);
 
-  // Matrix Glitch & Chromatic Aberration Shader Pass
   const GlitchAberrationShader = {
     uniforms: {
       tDiffuse: { value: null },
@@ -920,7 +1682,7 @@ function initScrollAnimations() {
       void main() {
         vec2 uv = vUv;
         float r = rand(vec2(uTime, uTime));
-        if(r > 0.99) { uv.x += (rand(uv) - 0.5) * 0.04; } // Micro-glitch
+        if(r > 0.99) { uv.x += (rand(uv) - 0.5) * 0.04; }
         vec4 cr = texture2D(tDiffuse, uv + vec2(uAmount, 0.0));
         vec4 cg = texture2D(tDiffuse, uv);
         vec4 cb = texture2D(tDiffuse, uv - vec2(uAmount, 0.0));
@@ -934,12 +1696,11 @@ function initScrollAnimations() {
   const C_GOLD = new THREE.Color(0xf7c948);
   const C_CYAN = new THREE.Color(0x38d9f5);
 
-  // Particles (The Neural Network Nodes)
   const N = 250;
   const pPos = new Float32Array(N * 3);
   const pVel = new Float32Array(N * 3);
   const pCol = new Float32Array(N * 3);
-  
+
   for (let i = 0; i < N; i++) {
     pPos[i*3] = (Math.random() - 0.5) * 100;
     pPos[i*3+1] = (Math.random() - 0.5) * 60;
@@ -962,14 +1723,13 @@ function initScrollAnimations() {
   });
   scene.add(new THREE.Points(ptGeo, ptMat));
 
-  // Connections (The Neural Network Links)
   const MAX_LINES = N * 3;
   const lineGeo = new THREE.BufferGeometry();
   const lPos = new Float32Array(MAX_LINES * 6);
   const lCol = new Float32Array(MAX_LINES * 6);
   lineGeo.setAttribute('position', new THREE.BufferAttribute(lPos, 3));
   lineGeo.setAttribute('color', new THREE.BufferAttribute(lCol, 3));
-  
+
   const lineMat = new THREE.LineBasicMaterial({
     vertexColors: true, transparent: true, opacity: 0.2, 
     blending: THREE.AdditiveBlending, depthWrite: false
@@ -977,8 +1737,6 @@ function initScrollAnimations() {
   const lineSegs = new THREE.LineSegments(lineGeo, lineMat);
   scene.add(lineSegs);
 
-
-  // Neural Splines (Data Streams)
   const curvePaths = [];
   for(let i=0; i<3; i++) {
     const pts = [];
@@ -1007,7 +1765,7 @@ function initScrollAnimations() {
   const mouse = new THREE.Vector2(0,0);
   const targetCamPos = new THREE.Vector3(0,0,45);
   let scrollY = 0;
-  
+
   document.addEventListener('mousemove', e => {
     mouse.x = (e.clientX / innerWidth) * 2 - 1;
     mouse.y = -(e.clientY / innerHeight) * 2 + 1;
@@ -1021,10 +1779,10 @@ function initScrollAnimations() {
   function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
-    
+
     const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
     const scrollProgress = scrollY / maxScroll;
-    
+
     targetCamPos.z = 45 - (scrollProgress * 40);
     targetCamPos.y = (mouse.y * 12) - (scrollProgress * 20);
     targetCamPos.x = mouse.x * 12;
@@ -1052,7 +1810,7 @@ function initScrollAnimations() {
           let r = C_GOLD.r*(1-u)+C_CYAN.r*u;
           let g = C_GOLD.g*(1-u)+C_CYAN.g*u;
           let b = C_GOLD.b*(1-u)+C_CYAN.b*u;
-          
+
           lPos[li*6]=pos[ix]; lPos[li*6+1]=pos[iy]; lPos[li*6+2]=pos[iz];
           lPos[li*6+3]=pos[jx]; lPos[li*6+4]=pos[jy]; lPos[li*6+5]=pos[jz];
           lCol[li*6]=r; lCol[li*6+1]=g; lCol[li*6+2]=b;
@@ -1061,7 +1819,7 @@ function initScrollAnimations() {
         }
       }
     }
-    
+
     ptGeo.attributes.position.needsUpdate = true;
     lineGeo.setDrawRange(0, li*2);
     lineGeo.attributes.position.needsUpdate = true;
@@ -1087,7 +1845,7 @@ function initScrollAnimations() {
 })();
 
 /* ═══════════════════════════════════════════════════════
-   GPU SHADER MORPHING BRAIN — ENHANCED (WEBGL)
+   GPU SHADER MORPHING BRAIN
    ═══════════════════════════════════════════════════════ */
 (function initBrain() {
   if(!window.THREE) return;
@@ -1117,7 +1875,7 @@ function initScrollAnimations() {
       uniform float uMorph;
       varying vec3 vNormal;
       varying vec3 vPosition;
-      
+
       vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
       vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
       float snoise(vec3 v){ 
@@ -1161,19 +1919,19 @@ function initScrollAnimations() {
 
       void main() {
         vNormal = normal;
-        
+
         float brainNoise = snoise(position * 2.5 + uTime * 0.3) * 0.15;
         float spikeNoise = snoise(position * 5.0 - uTime * 0.5) * 0.25;
-        
+
         float morphPhase1 = clamp(uMorph, 0.0, 1.0);
         float morphPhase2 = clamp(uMorph - 1.0, 0.0, 1.0);
-        
+
         float finalNoise = mix(0.0, brainNoise, morphPhase1);
         finalNoise = mix(finalNoise, spikeNoise, morphPhase2);
 
         vec3 newPosition = position + normal * finalNoise;
         vPosition = newPosition;
-        
+
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
       }
     `,
@@ -1182,16 +1940,16 @@ function initScrollAnimations() {
       uniform vec3 uColor2;
       varying vec3 vNormal;
       varying vec3 vPosition;
-      
+
       void main() {
         vec3 viewDirection = normalize(cameraPosition - vPosition);
         float fresnel = dot(viewDirection, normalize(vNormal));
         fresnel = clamp(1.0 - fresnel, 0.0, 1.0);
         fresnel = pow(fresnel, 2.5);
-        
+
         vec3 baseColor = mix(uColor1, uColor2, vNormal.y * 0.5 + 0.5);
         vec3 finalColor = baseColor + (uColor2 * fresnel * 1.5);
-        
+
         gl_FragColor = vec4(finalColor, 0.85);
       }
     `,
@@ -1224,7 +1982,7 @@ function initScrollAnimations() {
 
   const STATES = ['Neural Cortex', 'Deep Thought', 'Data Synapse'];
   let baseMorph = 0, targetMorph = 0, currentMorph = 0;
-  
+
   let isHoveringBrain = false;
   let timeMultiplier = 1;
 
@@ -1275,19 +2033,19 @@ function initScrollAnimations() {
   function animate() {
     rafId = requestAnimationFrame(animate);
     const delta = clock.getDelta();
-    
+
     targetMorph = isHoveringBrain ? 2 : baseMorph;
     timeMultiplier = THREE.MathUtils.lerp(timeMultiplier, isHoveringBrain ? 3.0 : 1.0, 0.05);
-    
+
     accumulatedTime += delta * timeMultiplier;
     currentMorph += (targetMorph - currentMorph) * 0.03;
-    
+
     brainMat.uniforms.uTime.value = accumulatedTime;
     brainMat.uniforms.uMorph.value = currentMorph;
 
     mesh.rotation.y = accumulatedTime * 0.2 + (mouse.x * 0.5);
     mesh.rotation.x = mouse.y * 0.3;
-    
+
     pInst.rotation.y = -accumulatedTime * 0.3;
     pInst.rotation.z = Math.sin(accumulatedTime * 0.5) * 0.2;
 
