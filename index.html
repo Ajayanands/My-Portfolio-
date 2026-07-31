@@ -1,253 +1,1303 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Website</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajay Anand S | AI & ML Engineer</title>
+  
+  <!-- Core Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  
+  <!-- Post-Processing Libraries for High-End Glow (Bloom) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ═══════════════════════════════════
+       CSS CUSTOM PROPERTIES
+       ═══════════════════════════════════ */
+    :root {
+      --bg:           #04040a;
+      --bg-2:         #080812;
+      --surface:      rgba(18, 18, 30, 0.7);
+      --surface-2:    rgba(28, 28, 48, 0.85);
+      --gold:         #f7c948;
+      --gold-2:       #c9952e;
+      --gold-glow:    rgba(247, 201, 72, 0.18);
+      --cyan:         #38d9f5;
+      --cyan-2:       #1e9bb5;
+      --cyan-glow:    rgba(56, 217, 245, 0.12);
+      --text:         #eeeef5;
+      --text-2:       #9494b0;
+      --text-3:       #5a5a78;
+      --border:       rgba(247, 201, 72, 0.12);
+      --border-2:     rgba(56, 217, 245, 0.08);
+      --radius-sm:    10px;
+      --radius-md:    16px;
+      --radius-lg:    24px;
+
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body:    'Inter', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+    }
+
+    /* ═══════════════════════════════════
+       RESET & BASE
+       ═══════════════════════════════════ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+
+    /* ═══════════════════════════════════
+       SCROLLBAR
+       ═══════════════════════════════════ */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-2); border-radius: 4px; }
+
+    /* ═══════════════════════════════════
+       LOADER
+       ═══════════════════════════════════ */
+    #loader {
+      position: fixed; inset: 0; z-index: 10000;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.5rem;
+    }
+
+    .loader-logo {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--gold); letter-spacing: 0.08em;
+    }
+
+    .loader-logo span { color: var(--text-2); font-weight: 300; }
+
+    .loader-bar-track {
+      width: 220px; height: 1px;
+      background: rgba(247,201,72,0.1); border-radius: 2px; overflow: hidden;
+    }
+
+    .loader-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--cyan));
+      border-radius: 2px;
+      transition: width 0.1s ease;
+    }
+
+    .loader-status {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--text-3); letter-spacing: 0.2em;
+    }
+
+    /* ═══════════════════════════════════
+       WEBGL CANVAS
+       ═══════════════════════════════════ */
+    #webgl-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════
+       NOISE OVERLAY
+       ═══════════════════════════════════ */
+    .noise {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 512px 512px;
+    }
+
+    /* ═══════════════════════════════════
+       NAVIGATION
+       ═══════════════════════════════════ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 3rem;
+      background: transparent;
+      transition: background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+      border-bottom: 1px solid transparent;
+    }
+
+    nav.scrolled {
+      background: rgba(4, 4, 10, 0.88);
+      border-bottom-color: var(--border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--gold); letter-spacing: 0.06em;
+    }
+
+    .nav-logo em { color: var(--text-2); font-style: normal; font-weight: 400; }
+
+    .nav-links { list-style: none; display: flex; gap: 2.5rem; align-items: center; }
+
+    .nav-links a {
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-2);
+      transition: color 0.25s ease;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: ''; position: absolute;
+      bottom: -3px; left: 0; width: 0; height: 1px;
+      background: var(--gold); transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-cta {
+      padding: 0.55rem 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.08em; color: var(--gold) !important;
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s !important;
+    }
+
+    .nav-cta::after { display: none !important; }
+    .nav-cta:hover {
+      background: var(--gold-glow) !important;
+      border-color: var(--gold) !important;
+      box-shadow: 0 0 20px var(--gold-glow) !important;
+    }
+
+    /* Hamburger */
+    .nav-toggle {
+      display: none; flex-direction: column;
+      gap: 5px; padding: 6px;
+      background: none; border: none;
+    }
+
+    .nav-toggle span {
+      display: block; width: 22px; height: 1.5px;
+      background: var(--gold); border-radius: 2px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .nav-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(4.5px, 5px); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px, -5px); }
+
+    /* Mobile nav */
+    .nav-drawer {
+      display: none; position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0; z-index: 490;
+      background: rgba(4, 4, 10, 0.97);
+      backdrop-filter: blur(20px);
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 2.5rem; padding: 6rem 2rem 3rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-drawer.open { display: flex; opacity: 1; pointer-events: all; }
+
+    .nav-drawer a {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight: 700;
+      color: var(--text-2); letter-spacing: 0.06em;
+      transition: color 0.2s ease;
+    }
+
+    .nav-drawer a:hover { color: var(--gold); }
+
+    /* ═══════════════════════════════════
+       MAIN WRAPPER & SECTIONS
+       ═══════════════════════════════════ */
+    main { position: relative; z-index: 2; }
+
+    .container {
+      max-width: 1160px; margin: 0 auto;
+      padding-left: clamp(1.25rem, 5vw, 3rem);
+      padding-right: clamp(1.25rem, 5vw, 3rem);
+    }
+
+    section { padding-block: clamp(5rem, 10vw, 9rem); }
+
+    .section-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 0.85rem;
+    }
+
+    .section-eyebrow::before {
+      content: ''; width: 28px; height: 1px; background: var(--cyan);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700; line-height: 1.15; letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .section-title .accent { color: var(--gold); }
+
+    /* ═══════════════════════════════════
+       HERO
+       ═══════════════════════════════════ */
+    #hero { min-height: 100svh; display: flex; align-items: center; padding-block: 0; padding-top: 5rem; }
+
+    .hero-inner {
+      display: grid; grid-template-columns: 1fr auto;
+      gap: clamp(2rem, 6vw, 6rem);
+      align-items: center; width: 100%;
+    }
+
+    .hero-content { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 100px; padding: 0.4rem 1rem;
+      font-family: var(--font-mono); font-size: 0.7rem;
+      letter-spacing: 0.15em; color: var(--cyan);
+      width: fit-content; opacity: 0;
+    }
+
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 8px var(--cyan);
+      animation: dotPulse 2s ease infinite;
+    }
+
+    @keyframes dotPulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-name {
+      font-family: var(--font-display); font-size: clamp(2.8rem, 7.5vw, 5.5rem);
+      font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; opacity: 0;
+    }
+
+    .hero-name .line-1 { color: var(--text-2); font-weight: 300; }
+    .hero-name .line-2 {
+      color: var(--gold);
+      text-shadow: 0 0 60px rgba(247,201,72,0.25), 0 0 120px rgba(247,201,72,0.08);
+      display: block;
+    }
+
+    .hero-tagline {
+      font-family: var(--font-mono); font-size: 0.88rem;
+      letter-spacing: 0.15em; color: var(--text-2);
+      text-transform: uppercase; opacity: 0;
+    }
+
+    .hero-desc {
+      font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+      line-height: 1.8; color: var(--text-2);
+      max-width: 520px; opacity: 0;
+    }
+
+    .hero-desc strong { color: var(--text); font-weight: 600; }
+    .hero-desc .hl { color: var(--gold); }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.85rem; align-items: center; opacity: 0; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.8rem 1.7rem; border-radius: var(--radius-sm);
+      font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--gold), var(--gold-2)); color: #0a0805; box-shadow: 0 4px 20px rgba(247,201,72,0.25); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(247,201,72,0.35); }
+    .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); backdrop-filter: blur(10px); }
+    .btn-ghost:hover { border-color: rgba(247,201,72,0.35); color: var(--gold); transform: translateY(-2px); }
+
+    .hero-socials { display: flex; gap: 0.75rem; align-items: center; opacity: 0; }
+    .hero-socials a {
+      width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text-2); font-size: 1.15rem; background: var(--surface);
+      backdrop-filter: blur(8px); transition: all 0.3s ease;
+    }
+    .hero-socials a:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 20px var(--gold-glow); }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute; bottom: 2.5rem; left: 50%;
+      transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.2em; color: var(--text-3); opacity: 0;
+    }
+    .scroll-mouse {
+      width: 20px; height: 32px; border: 1px solid var(--text-3); border-radius: 10px; position: relative; overflow: hidden;
+    }
+    .scroll-mouse::after {
+      content: ''; position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+      width: 3px; height: 6px; background: var(--gold); border-radius: 2px;
+      animation: scrollWheel 2s ease-in-out infinite;
+    }
+    @keyframes scrollWheel { 0%,100% { top: 5px; opacity: 1; } 80% { top: 18px; opacity: 0; } }
+
+    /* ═══════════════════════════════════
+       BRAIN CANVAS HERO VISUAL
+       ═══════════════════════════════════ */
+    .hero-visual { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1rem; opacity: 0;}
+    #brain-canvas-wrap { position: relative; width: clamp(280px, 34vw, 440px); height: clamp(280px, 34vw, 440px); flex-shrink: 0; cursor: crosshair; }
+    #brain-canvas { width: 100%; height: 100%; border-radius: 50%; display: block; }
+
+    #brain-canvas-wrap::before {
+      content: ''; position: absolute; inset: -18px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(247,201,72,0.15) 0%, rgba(56,217,245,0.08) 50%, transparent 75%);
+      pointer-events: none; animation: brainGlow 4s ease-in-out infinite;
+    }
+    #brain-canvas-wrap::after {
+      content: ''; position: absolute; inset: -2px; border-radius: 50%;
+      border: 1px solid rgba(247,201,72,0.18); pointer-events: none; animation: brainRing 6s linear infinite;
+    }
+
+    @keyframes brainGlow { 0%,100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.04); } }
+    @keyframes brainRing { 0% { transform: rotate(0deg); border-color: rgba(247,201,72,0.18); } 50% { border-color: rgba(56,217,245,0.18); } 100% { transform: rotate(360deg); border-color: rgba(247,201,72,0.18); } }
+
+    .brain-label { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-3); text-align: center; transition: color 0.6s ease; min-height: 1.2em; }
+
+    .hero-photo-badge {
+      display: flex; align-items: center; gap: 0.85rem; padding: 0.65rem 1rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); backdrop-filter: blur(12px);
+    }
+    .hero-photo-badge img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(247,201,72,0.3); }
+    .hero-photo-badge-info { display: flex; flex-direction: column; gap: 0.1rem; }
+    .hero-photo-badge-name { font-size: 0.8rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
+    .hero-photo-badge-role { font-family: var(--font-mono); font-size: 0.62rem; color: var(--cyan); letter-spacing: 0.12em; }
+
+    /* ═══════════════════════════════════
+       ABOUT, SKILLS, PROJECTS, CONTACT
+       ═══════════════════════════════════ */
+    /* ABOUT */
+    .about-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(2.5rem, 6vw, 6rem); align-items: start; }
+    .about-photo-wrap { position: relative; border-radius: var(--radius-md); overflow: hidden; background: var(--surface); border: 1px solid var(--border); opacity: 0; }
+    .about-photo-wrap img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(60%) contrast(1.05); transition: filter 0.5s ease, transform 0.5s ease; }
+    .about-photo-wrap:hover img { filter: grayscale(20%); transform: scale(1.02); }
+    .about-photo-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(4,4,10,0.6) 100%); pointer-events: none; }
+    .about-tag { position: absolute; bottom: 1.25rem; left: 1.25rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--gold); background: rgba(4,4,10,0.7); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.65rem; }
+    .about-content { display: flex; flex-direction: column; gap: 1.5rem; opacity: 0; }
+    .about-content p { font-size: 0.97rem; line-height: 1.85; color: var(--text-2); }
+    .about-content p strong { color: var(--text); font-weight: 600; }
+    .about-content .hl { color: var(--gold); font-weight: 500; }
+    .about-stats { display: flex; gap: 2rem; padding: 1.5rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .stat { display: flex; flex-direction: column; gap: 0.2rem; }
+    .stat-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--gold); letter-spacing: -0.02em; line-height: 1; }
+    .stat-label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+    .about-actions { display: flex; flex-wrap: wrap; gap: 0.85rem; }
+
+    /* SKILLS */
+    .skills-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 3rem; }
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: clamp(0.75rem, 2vw, 1.25rem); }
+    
+    /* MODIFIED for Holographic Tilt: Removed native CSS transitions on transform, added perspective */
+    .skill-card { transform-style: preserve-3d; perspective: 1000px; position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: clamp(1.25rem, 3vw, 2rem) 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.85rem; cursor: default; backdrop-filter: blur(12px); overflow: hidden; opacity: 0; transform: translateY(24px); transition: border-color 0.35s ease, box-shadow 0.35s ease; will-change: transform; }
+    .skill-card::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%) translateZ(10px); width: 0; height: 1.5px; background: linear-gradient(90deg, transparent, var(--gold), transparent); transition: width 0.4s ease; pointer-events: none; }
+    .skill-card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% -20%, rgba(247,201,72,0.06) 0%, transparent 70%); opacity: 0; transition: opacity 0.35s ease; pointer-events: none; transform: translateZ(5px); }
+    .skill-card:hover { border-color: rgba(247,201,72,0.28); box-shadow: 0 16px 40px rgba(0,0,0,0.3), 0 0 24px rgba(247,201,72,0.04); }
+    .skill-card:hover::before { width: 70%; }
+    .skill-card:hover::after { opacity: 1; }
+    .skill-icon { width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); transform: translateZ(20px); }
+    .skill-icon img { width: 100%; height: 100%; object-fit: contain; filter: saturate(0.7) brightness(0.9); transition: filter 0.35s ease; }
+    .skill-card:hover .skill-icon { transform: translateY(-5px) scale(1.12) translateZ(30px); }
+    .skill-card:hover .skill-icon img { filter: saturate(1) brightness(1.1); }
+    .skill-name { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; color: var(--text-2); text-align: center; position: relative; z-index: 1; transition: color 0.3s ease; transform: translateZ(15px); }
+    .skill-card:hover .skill-name { color: var(--gold); }
+    .skill-level { width: 100%; height: 2px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; position: relative; z-index: 1; transform: translateZ(10px); }
+    .skill-level-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--cyan)); border-radius: 2px; transition: width 0.9s cubic-bezier(0.4,0,0.2,1) 0.1s; }
+    .skill-card:hover .skill-level-fill { width: var(--pct, 85%); }
+
+    /* PROJECTS */
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: clamp(1rem, 2.5vw, 1.5rem); margin-top: 3rem; }
+    
+    /* MODIFIED for Holographic Tilt */
+    .project-card { transform-style: preserve-3d; perspective: 1000px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s; opacity: 0; transform: translateY(20px); position: relative;}
+    .project-card:hover { border-color: rgba(247,201,72,0.25); box-shadow: 0 20px 50px rgba(0,0,0,0.35); }
+    .project-header { padding: 1.75rem 1.75rem 0; display: flex; align-items: flex-start; justify-content: space-between; transform: translateZ(20px); }
+    .project-icon { width: 48px; height: 48px; background: var(--gold-glow); border: 1px solid rgba(247,201,72,0.2); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--gold); }
+    .project-links { display: flex; gap: 0.6rem; }
+    .project-links a { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 8px; color: var(--text-2); font-size: 0.9rem; transition: color 0.2s, border-color 0.2s, background 0.2s; position:relative; z-index: 20;}
+    .project-links a:hover { color: var(--gold); border-color: var(--gold); background: var(--gold-glow); }
+    .project-body { padding: 1.25rem 1.75rem 1.75rem; transform: translateZ(15px); }
+    .project-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.6rem; }
+    .project-desc { font-size: 0.88rem; line-height: 1.7; color: var(--text-2); margin-bottom: 1.25rem; transform: translateZ(10px); }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; transform: translateZ(25px); }
+    .project-tag { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; color: var(--cyan); background: rgba(56,217,245,0.06); border: 1px solid rgba(56,217,245,0.15); border-radius: 6px; padding: 0.25rem 0.6rem; }
+
+    /* Holographic Glare Element injected via JS */
+    .card-glare { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s; mix-blend-mode: overlay; z-index: 10; border-radius: var(--radius-md); }
+
+    /* CONTACT */
+    #contact { text-align: center; }
+    .contact-inner { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+    .contact-desc { font-size: 1rem; line-height: 1.8; color: var(--text-2); }
+    .contact-links { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; align-items: center; }
+    .contact-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1.4rem; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-2); font-size: 0.85rem; background: var(--surface); backdrop-filter: blur(8px); transition: all 0.3s ease; }
+    .contact-link:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); transform: translateY(-2px); }
+    .contact-link i { font-size: 1.05rem; }
+    .contact-email { font-family: var(--font-mono); font-size: 0.9rem; color: var(--gold); padding: 0.85rem 2rem; border: 1px solid rgba(247,201,72,0.25); border-radius: var(--radius-sm); background: var(--gold-glow); letter-spacing: 0.05em; transition: all 0.3s ease; }
+    .contact-email:hover { background: rgba(247,201,72,0.14); box-shadow: 0 0 30px var(--gold-glow); }
+
+    /* FOOTER */
+    footer { position: relative; z-index: 2; padding: 2rem clamp(1.25rem, 5vw, 3rem); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .footer-brand { font-family: var(--font-display); font-size: 0.9rem; color: var(--text-3); }
+    .footer-brand strong { color: var(--gold); }
+    .footer-note { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.15em; color: var(--text-3); }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) { nav { padding: 1rem 2rem; } }
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { display: none; }
+      .nav-toggle { display: flex; }
+      .hero-inner { grid-template-columns: 1fr; text-align: center; gap: 2.5rem; }
+      .hero-content { align-items: center; }
+      .hero-desc { max-width: 100%; }
+      #brain-canvas-wrap { width: clamp(220px, 65vw, 320px); height: clamp(220px, 65vw, 320px); margin: 0 auto; }
+      .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .about-photo-wrap { max-width: 380px; margin: 0 auto; }
+      .about-content { text-align: center; align-items: center; }
+      .about-stats { justify-content: center; }
+      .about-actions { justify-content: center; }
+      .skills-intro { flex-direction: column; align-items: flex-start; gap: 0; }
+      footer { justify-content: center; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .hero-name { font-size: clamp(2.2rem, 11vw, 3rem); }
+      .skills-grid { grid-template-columns: repeat(2, 1fr); }
+      .contact-links { gap: 0.75rem; }
+      .about-stats { gap: 1.25rem; }
+      .stat-num { font-size: 1.5rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
 </head>
-
 <body>
-    <header>
-        <nav>
-            <!--<img src="asset/carepy_logo-1.svg" alt="">-->
-            <ul>
-                <li><a href="#" class="active">About</a></li>
-                <li><a href="#portfolio-loc">Projects</a></li>
-                <li><a href="#contact-loc">Contact</a></li>
-            </ul>
-            
-        </nav>
-        <div class="landing">
-            <div class="intro">
-                <h3>I'M <Span>Ajay Anand S</Span><br>AI & ML Enthusiast <br>Student</h3>
-                
-            </div>
-            <div class="socials">
-                <div class="line"></div>
-                <a href="https://bento.me/ajay-anand-s" target="_blank"><i class="ri-chat-2-fill"></i></a>
-                <a href="https://www.instagram.com/ajuu_.012._offl/" target="_blank"><i class="ri-instagram-fill"></i></a>
-                  
-                <a href="https://www.linkedin.com/in/ajay-anand-s-8a30a62b7" target="_blank"><i class="ri-linkedin-fill"></i></a>
-                <a href="https://wa.me/916369715294" target="_blank" rel="noopener noreferrer">
-                    <i class="ri-whatsapp-line"></i>
-                  </a>
-                  
-                  
-            </div>
+
+<div id="loader">
+  <div class="loader-logo">AJAY<em>.</em></div>
+  <div class="loader-bar-track">
+    <div class="loader-bar-fill" id="loader-fill"></div>
+  </div>
+  <div class="loader-status" id="loader-status">booting neural interface — 0%</div>
+</div>
+
+<canvas id="webgl-canvas"></canvas>
+<div class="noise"></div>
+
+<nav id="nav">
+  <a class="nav-logo" href="#">AJAY<em> / AI Engineer</em></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact" class="nav-cta">Contact</a></li>
+  </ul>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="nav-drawer" id="nav-drawer">
+  <a href="#about">About</a>
+  <a href="#skills">Skills</a>
+  <a href="#projects">Projects</a>
+  <a href="#contact">Contact</a>
+</div>
+
+<main>
+  <section id="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <div class="hero-badge-dot"></div>
+            Available for Projects
+          </div>
+
+          <h1 class="hero-name">
+            <span class="line-1">I'M&nbsp;</span>
+            <span class="line-2">AJAY ANAND S</span>
+          </h1>
+
+          <p class="hero-tagline">AI &amp; ML Enthusiast · B.Tech Student · Builder</p>
+
+          <p class="hero-desc">
+            I build <strong>intelligent systems</strong> that turn
+            <span class="hl">machine learning</span> into products people
+            actually use — from GenAI study platforms to smart safety
+            hardware. Complex algorithms, real-world impact.
+          </p>
+
+          <div class="hero-actions">
+            <a href="./asset/Ajay_Anand_S_Resume.pdf" class="btn btn-primary" target="_blank">
+              <i class="ri-download-line"></i> Download Resume
+            </a>
+            <a href="#projects" class="btn btn-ghost">
+              <i class="ri-code-s-slash-line"></i> View Projects
+            </a>
+          </div>
+
+          <div class="hero-socials">
+            <a href="https://www.instagram.com/ajay_anand_s" target="_blank" aria-label="Instagram"><i class="ri-instagram-line"></i></a>
+            <a href="https://www.linkedin.com/in/ajay-anand-s-bb2a8a2b7" target="_blank" aria-label="LinkedIn"><i class="ri-linkedin-fill"></i></a>
+            <a href="https://bento.me/ajayanand" target="_blank" aria-label="Bento"><i class="ri-global-line"></i></a>
+            <a href="https://wa.me/917305254450" target="_blank" aria-label="WhatsApp"><i class="ri-whatsapp-line"></i></a>
+            <a href="mailto:ajayanand0801@gmail.com" aria-label="Email"><i class="ri-mail-line"></i></a>
+          </div>
         </div>
-    </header>
-    <section class="about">
-    <h1>About</h1>
-    <div class="description">
-        <div class="line"></div>
-        <p>I'm currently pursuing my M.Sc in Artificial Intelligence and Machine Learning at Coimbatore Institute of Technology. My academic journey involves a deep dive into the complexities of AI and ML. The program has not only provided a strong theoretical foundation but also sparked my interest in research and innovation. I'm passionate about exploring the practical applications of these technologies and look forward to contributing meaningfully to the field. The collaborative environment at the institute has been instrumental in shaping my academic and personal growth.
+
+        <div class="hero-visual" id="hero-visual">
+          <div id="brain-canvas-wrap">
+            <canvas id="brain-canvas"></canvas>
+          </div>
+          <div class="brain-label" id="brain-label">initializing cortex…</div>
+          <div class="hero-photo-badge">
+            <img src="./asset/ajayremovebg.png" alt="Ajay Anand S" onerror="this.src='https://via.placeholder.com/40/38d9f5/0a0805?text=A'">
+            <div class="hero-photo-badge-info">
+              <span class="hero-photo-badge-name">Ajay Anand S</span>
+              <span class="hero-photo-badge-role">AI &amp; ML Engineer</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-hint" id="scroll-hint">
+      <div class="scroll-mouse"></div>
+      <span>SCROLL</span>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="container">
+      <div class="section-header scramble-target" style="margin-bottom:3rem; opacity:0;" id="about-header" data-raw-text="The Mind Behind the Matrix">
+        <p class="section-eyebrow">About Me</p>
+        <h2 class="section-title">The Mind Behind the <span class="accent">Matrix</span></h2>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-photo-wrap" id="about-img">
+          <img src="./asset/1698125242104.jpeg" alt="Ajay Anand S" onerror="this.src='https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80'">
+          <div class="about-photo-overlay"></div>
+          <div class="about-tag">B.Tech — AI &amp; Data Science</div>
+        </div>
+
+        <div class="about-content" id="about-content">
+          <p>
+            I'm <strong>Ajay Anand S</strong>, an AI &amp; ML enthusiast pursuing
+            B.Tech in Artificial Intelligence and Data Science. My journey started
+            with curiosity about how machines learn — and evolved into shipping
+            real products that solve real problems.
+          </p>
+          <p>
+            I specialize in <span class="hl">full-stack AI applications</span>:
+            training models with PyTorch, deploying them with Docker and Flask,
+            and wrapping them in polished interfaces. From GenAI study platforms
+            to smart safety hardware that prevents accidents before they happen.
+          </p>
+          <p>
+            When I'm not training models or debugging APIs, I explore the
+            intersection of <strong>creative technology</strong> and intelligent
+            design — because the best AI experiences feel invisible, not robotic.
+          </p>
+
+          <div class="about-stats">
+            <div class="stat"><span class="stat-num">14+</span><span class="stat-label">Technologies</span></div>
+            <div class="stat"><span class="stat-num">10+</span><span class="stat-label">Projects</span></div>
+            <div class="stat"><span class="stat-num">3+</span><span class="stat-label">Years Learning</span></div>
+          </div>
+
+          <div class="about-actions">
+            <a href="./asset/Ajay_Anand_S_Resume.pdf" class="btn btn-primary" target="_blank"><i class="ri-download-line"></i> Resume</a>
+            <a href="#contact" class="btn btn-ghost"><i class="ri-send-plane-line"></i> Get in Touch</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="container">
+      <div class="skills-intro">
+        <div class="scramble-target" style="opacity:0;" id="skills-header" data-raw-text="My Skill Constellation">
+          <p class="section-eyebrow">Neural Capabilities</p>
+          <h2 class="section-title">My <span class="accent">Skill</span> Constellation</h2>
+        </div>
+      </div>
+      <div class="skills-grid" id="skills-grid"></div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="container">
+      <div class="scramble-target" style="opacity:0; margin-bottom:0;" id="projects-header" data-raw-text="What I've Built">
+        <p class="section-eyebrow">Project Matrix</p>
+        <h2 class="section-title">What I've <span class="accent">Built</span></h2>
+      </div>
+      <div class="projects-grid" id="projects-grid"></div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <div class="contact-inner scramble-target" style="opacity:0;" id="contact-inner" data-raw-text="Let's Connect">
+        <p class="section-eyebrow">Contact Portal</p>
+        <h2 class="section-title">Let's <span class="accent">Connect</span></h2>
+        <p class="contact-desc">
+          Open to collaborations, internships, and conversations about
+          interesting AI problems. Drop a message — I usually respond within 24 hours.
         </p>
+        <a class="contact-email" href="mailto:ajayanand0801@gmail.com">ajayanand0801@gmail.com</a>
+        <div class="contact-links">
+          <a class="contact-link" href="https://www.linkedin.com/in/ajay-anand-s-bb2a8a2b7" target="_blank"><i class="ri-linkedin-fill"></i> LinkedIn</a>
+          <a class="contact-link" href="https://wa.me/917305254450" target="_blank"><i class="ri-whatsapp-line"></i> WhatsApp</a>
+          <a class="contact-link" href="https://bento.me/ajayanand" target="_blank"><i class="ri-global-line"></i> Bento</a>
+          <a class="contact-link" href="https://www.instagram.com/ajay_anand_s" target="_blank"><i class="ri-instagram-line"></i> Instagram</a>
+        </div>
+      </div>
     </div>
+  </section>
+</main>
 
-    <!-- ✅ Resume Buttons Below About Section -->
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="asset/Ajay_Anand_S_Resume.pdf" target="_blank">
-            <button style="padding: 10px 20px; background-color: #1e416e; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px;">
-                📄 View Resume
-            </button>
-        </a>
-        <a href="asset/Ajay_Anand_S_Resume.pdf" download>
-            <button style="padding: 10px 20px; background-color: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                ⬇️ Download Resume
-            </button>
-        </a>
-    </div>
-</section>
+<footer>
+  <div class="footer-brand"><strong>Ajay Anand S</strong> — AI &amp; ML Engineer</div>
+  <div class="footer-note">Designed &amp; built with precision · 2025</div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   UI & LOADER LOGIC
+   ═══════════════════════════════════════════════════ */
+const isMobile = window.innerWidth < 768 || ('ontouchstart' in window);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const fill = document.getElementById('loader-fill');
+const status = document.getElementById('loader-status');
+let pct = 0;
+const loaderInt = setInterval(() => {
+  pct = Math.min(pct + Math.random() * 15 + 5, 100);
+  fill.style.width = pct + '%';
+  status.textContent = `booting neural interface — ${Math.floor(pct)}%`;
+  if (pct >= 100) {
+    clearInterval(loaderInt);
+    setTimeout(() => {
+      gsap.to('#loader', {
+        opacity: 0, duration: 0.7, ease: 'power2.inOut',
+        onComplete: () => {
+          document.getElementById('loader').style.display = 'none';
+          startIntro();
+        }
+      });
+    }, 300);
+  }
+}, 50);
+
+const navEl = document.getElementById('nav');
+const toggle = document.getElementById('nav-toggle');
+const drawer = document.getElementById('nav-drawer');
+
+window.addEventListener('scroll', () => { navEl.classList.toggle('scrolled', scrollY > 60); }, { passive: true });
+toggle.addEventListener('click', () => { toggle.classList.toggle('open'); drawer.classList.toggle('open'); });
+drawer.querySelectorAll('a').forEach(a => { a.addEventListener('click', () => { toggle.classList.remove('open'); drawer.classList.remove('open'); }); });
+
+/* ═══════════════════════════════════════════════════
+   DATA & RENDER
+   ═══════════════════════════════════════════════════ */
+const SKILLS = [
+  { name: 'Python', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg', pct: '92%' },
+  { name: 'PyTorch', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg', pct: '83%' },
+  { name: 'ReactJS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg', pct: '76%' },
+  { name: 'NodeJS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg', pct: '80%' },
+  { name: 'JavaScript', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg', pct: '85%' },
+  { name: 'Docker', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg', pct: '75%' },
+  { name: 'MongoDB', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg', pct: '80%' },
+  { name: 'MySQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg', pct: '82%' },
+];
+
+const PROJECTS = [
+  { icon: '🎓', title: 'GenAI Study Platform', desc: 'An intelligent study companion powered by LLMs that generates personalized quizzes and summaries.', tags: ['Python', 'LangChain', 'Flask', 'React'], links: { github: '#' } },
+  { icon: '🛡️', title: 'Smart Safety Hardware', desc: 'IoT safety system using computer vision to detect workplace hazards in real-time.', tags: ['PyTorch', 'OpenCV', 'Raspberry Pi'], links: { github: '#' } },
+  { icon: '🤖', title: 'Custom LLM Fine-tuning', desc: 'Fine-tuned domain-specific language models using LoRA and QLoRA adapters on datasets.', tags: ['PyTorch', 'LoRA', 'Hugging Face'], links: { github: '#' } },
+  { icon: '📊', title: 'AI Analytics Dashboard', desc: 'Full-stack data visualization platform that ingests streaming sensor data.', tags: ['React', 'Node.js', 'MongoDB'], links: { github: '#' } },
+  { icon: '🔍', title: 'Semantic Search Engine', desc: 'Vector-search powered document retrieval system with bi-encoder ranking.', tags: ['FAISS', 'FastAPI', 'Docker'], links: { github: '#' } },
+  { icon: '🌐', title: 'Neural Portfolio', desc: 'This very portfolio — High-end WebGL shaders, Bloom PostProcessing, and GSAP scroll animations.', tags: ['Three.js', 'GLSL', 'GSAP'], links: { live: '#' } }
+];
+
+function renderSkills() {
+  const grid = document.getElementById('skills-grid');
+  SKILLS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'skill-card tilt-card'; card.style.setProperty('--pct', s.pct);
+    card.innerHTML = `<div class="card-glare"></div><div class="skill-icon"><img src="${s.icon}" alt="${s.name}" loading="lazy"></div><span class="skill-name">${s.name}</span><div class="skill-level"><div class="skill-level-fill"></div></div>`;
+    grid.appendChild(card);
+  });
+}
+
+function renderProjects() {
+  const grid = document.getElementById('projects-grid');
+  PROJECTS.forEach(p => {
+    const card = document.createElement('div'); card.className = 'project-card tilt-card';
+    const linksHTML = Object.entries(p.links).map(([type, url]) => `<a href="${url}" target="_blank"><i class="ri-${type === 'github' ? 'github-fill' : 'external-link-line'}"></i></a>`).join('');
+    card.innerHTML = `<div class="card-glare"></div><div class="project-header"><div class="project-icon">${p.icon}</div><div class="project-links">${linksHTML}</div></div><div class="project-body"><h3 class="project-title">${p.title}</h3><p class="project-desc">${p.desc}</p><div class="project-tags">${p.tags.map(t => `<span class="project-tag">${t}</span>`).join('')}</div></div>`;
+    grid.appendChild(card);
+  });
+}
+renderSkills(); renderProjects();
+
+/* ENHANCEMENT 7: 3D Holographic Tilt Logic */
+function initTiltCards() {
+  if (isMobile || reduceMotion) return;
+  document.querySelectorAll('.tilt-card').forEach(card => {
+    const glare = card.querySelector('.card-glare');
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const rotX = -((y - cy) / cy) * 12; // tilt amount
+      const rotY = ((x - cx) / cx) * 12;
+      gsap.to(card, { rotateX: rotX, rotateY: rotY, duration: 0.4, ease: 'power2.out', overwrite: 'auto' });
+      gsap.to(glare, { opacity: 1, background: `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.15), transparent 60%)`, duration: 0.1 });
+    });
+    card.addEventListener('mouseleave', () => {
+      gsap.to(card, { rotateX: 0, rotateY: 0, duration: 0.6, ease: 'power2.out', overwrite: 'auto' });
+      gsap.to(glare, { opacity: 0, duration: 0.5 });
+    });
+  });
+}
+initTiltCards();
+
+/* ENHANCEMENT 6: Neural Text Scramble Logic */
+function scrambleText(element) {
+  if (reduceMotion) return;
+  const titleEl = element.querySelector('.section-title');
+  if (!titleEl) return;
+  
+  const rawText = element.getAttribute('data-raw-text') || titleEl.innerText;
+  const originalHTML = titleEl.innerHTML;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&*';
+  
+  let iterations = 0;
+  const interval = setInterval(() => {
+    titleEl.innerText = rawText.split('').map((char, index) => {
+      if(index < iterations || char === ' ') return char;
+      return chars[Math.floor(Math.random() * chars.length)];
+    }).join('');
+    
+    if (iterations >= rawText.length) {
+      clearInterval(interval);
+      titleEl.innerHTML = originalHTML; // restore HTML spans after decoding
+    }
+    iterations += 1/3;
+  }, 30);
+}
+
+/* GSAP Animations */
+function startIntro() {
+  if (reduceMotion) {
+    document.querySelectorAll('.hero-badge,.hero-name,.hero-tagline,.hero-desc,.hero-actions,.hero-socials,#hero-visual,#scroll-hint').forEach(el => { el.style.opacity = '1'; });
+    initScrollAnimations(); return;
+  }
+  gsap.set('.hero-badge,.hero-tagline,.hero-desc,.hero-actions,.hero-socials,#scroll-hint', { y: 18, opacity: 0 });
+  gsap.set('.hero-name', { y: 30, opacity: 0 });
+  gsap.set('#hero-visual', { scale: 0.88, opacity: 0 });
+  const tl = gsap.timeline({ onComplete: () => { initScrollAnimations(); } });
+  tl.to('.hero-badge', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0.15)
+    .to('.hero-name', { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 0.3)
+    .to('.hero-tagline', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0.5)
+    .to('.hero-desc', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.65)
+    .to('.hero-actions', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0.8)
+    .to('.hero-socials', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.92)
+    .to('#hero-visual', { opacity: 1, scale: 1, duration: 1.1, ease: 'back.out(1.15)' }, 0.2)
+    .to('#scroll-hint', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 1.1);
+}
+
+function initScrollAnimations() {
+  gsap.registerPlugin(ScrollTrigger);
+  const fadeUp = (el, delay = 0) => {
+    gsap.set(el, { y: 28, opacity: 0 });
+    gsap.to(el, { y: 0, opacity: 1, duration: 0.8, delay, ease: 'power3.out', 
+      scrollTrigger: { 
+        trigger: el, start: 'top 82%', toggleActions: 'play none none none',
+        onEnter: () => scrambleText(document.querySelector(el))
+      } 
+    });
+  };
+  fadeUp('#about-header');
+  gsap.to('#about-img', { x: 0, opacity: 1, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: '#about-img', start: 'top 78%' }}); gsap.set('#about-img', { x: -36 });
+  gsap.to('#about-content', { x: 0, opacity: 1, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: '#about-content', start: 'top 78%' }}); gsap.set('#about-content', { x: 36 });
+  fadeUp('#skills-header');
+  gsap.to('.skill-card', { y: 0, opacity: 1, stagger: 0.065, duration: 0.6, ease: 'power3.out', scrollTrigger: { trigger: '#skills-grid', start: 'top 78%' } });
+  fadeUp('#projects-header');
+  gsap.to('.project-card', { y: 0, opacity: 1, stagger: 0.1, duration: 0.65, ease: 'power3.out', scrollTrigger: { trigger: '#projects-grid', start: 'top 80%' } });
+  fadeUp('#contact-inner');
+}
+
+/* ═══════════════════════════════════════════════════
+   BACKGROUND WEBGL — CLEANED NEURAL FOCUS
+   ═══════════════════════════════════════════════════ */
+(function initWebGL() {
+  if (isMobile || reduceMotion || !window.THREE) return;
+
+  const canvas = document.getElementById('webgl-canvas');
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x04040a, 0.015);
+
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 45);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: false, antialias: false, powerPreference: 'high-performance' });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x04040a, 1);
+
+  // Post-Processing Core
+  const renderScene = new THREE.RenderPass(scene, camera);
+  const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.8, 0.6, 0.1);
+  const composer = new THREE.EffectComposer(renderer);
+  composer.addPass(renderScene);
+  composer.addPass(bloomPass);
+
+  // ENHANCEMENT 5: Matrix Glitch & Chromatic Aberration Shader Pass
+  const GlitchAberrationShader = {
+    uniforms: {
+      tDiffuse: { value: null },
+      uTime: { value: 0 },
+      uAmount: { value: 0.0015 }
+    },
+    vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform float uTime;
+      uniform float uAmount;
+      varying vec2 vUv;
+      float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
+      void main() {
+        vec2 uv = vUv;
+        float r = rand(vec2(uTime, uTime));
+        if(r > 0.99) { uv.x += (rand(uv) - 0.5) * 0.04; } // Micro-glitch
+        vec4 cr = texture2D(tDiffuse, uv + vec2(uAmount, 0.0));
+        vec4 cg = texture2D(tDiffuse, uv);
+        vec4 cb = texture2D(tDiffuse, uv - vec2(uAmount, 0.0));
+        gl_FragColor = vec4(cr.r, cg.g, cb.b, cg.a);
+      }
+    `
+  };
+  const glitchPass = new THREE.ShaderPass(GlitchAberrationShader);
+  composer.addPass(glitchPass);
+
+  const C_GOLD = new THREE.Color(0xf7c948);
+  const C_CYAN = new THREE.Color(0x38d9f5);
+
+  // Particles (The Neural Network Nodes)
+  const N = 250;
+  const pPos = new Float32Array(N * 3);
+  const pVel = new Float32Array(N * 3);
+  const pCol = new Float32Array(N * 3);
+  
+  for (let i = 0; i < N; i++) {
+    pPos[i*3] = (Math.random() - 0.5) * 100;
+    pPos[i*3+1] = (Math.random() - 0.5) * 60;
+    pPos[i*3+2] = (Math.random() - 0.5) * 50;
+    pVel[i*3] = (Math.random()-0.5)*0.03;
+    pVel[i*3+1] = (Math.random()-0.5)*0.03;
+    pVel[i*3+2] = (Math.random()-0.5)*0.03;
+
+    const c = Math.random() < 0.5 ? C_GOLD : C_CYAN;
+    pCol[i*3]=c.r; pCol[i*3+1]=c.g; pCol[i*3+2]=c.b;
+  }
+
+  const ptGeo = new THREE.BufferGeometry();
+  ptGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  ptGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+
+  const ptMat = new THREE.PointsMaterial({
+    size: 0.6, vertexColors: true, transparent: true,
+    opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  scene.add(new THREE.Points(ptGeo, ptMat));
+
+  // Connections (The Neural Network Links)
+  const MAX_LINES = N * 3;
+  const lineGeo = new THREE.BufferGeometry();
+  const lPos = new Float32Array(MAX_LINES * 6);
+  const lCol = new Float32Array(MAX_LINES * 6);
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(lPos, 3));
+  lineGeo.setAttribute('color', new THREE.BufferAttribute(lCol, 3));
+  
+  const lineMat = new THREE.LineBasicMaterial({
+    vertexColors: true, transparent: true, opacity: 0.2, 
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const lineSegs = new THREE.LineSegments(lineGeo, lineMat);
+  scene.add(lineSegs);
 
 
-    </section>
-    <section class="skills">
-        <h1>My Skills</h1>
-        <div class="cards">
-            <div class="skill-card">
-                <img src="asset/python.svg" alt="">
-                <h2>Python</h2>
-            </div>
-            <div class="skill-card">
-                <img src="asset/ml.svg" alt="">
-                <h2>ML</h2>
-            </div>
-            <div class="skill-card">
-                <img src="asset/mongodb.svg" alt="">
-                <h2>MongoDB</h2>
-            </div>
-            <div class="skill-card">
-                <img src="asset/mysql.svg" alt="">
-                <h2>MySQL</h2>
-            </div>  
+  // ENHANCEMENT 4: Neural Splines (Data Streams - The Random Passing Stuff)
+  const curvePaths = [];
+  for(let i=0; i<3; i++) {
+    const pts = [];
+    for(let j=0; j<8; j++) pts.push(new THREE.Vector3((Math.random()-0.5)*100, (Math.random()-0.5)*50, -50 + (j*15)));
+    curvePaths.push(new THREE.CatmullRomCurve3(pts));
+  }
+  const splineMats = [];
+  curvePaths.forEach(curve => {
+    const tubeGeo = new THREE.TubeGeometry(curve, 100, 0.2, 8, false);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uColor: { value: C_CYAN } },
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `
+        uniform float uTime; uniform vec3 uColor; varying vec2 vUv;
+        void main() {
+          float pulse = step(0.9, sin(vUv.x * 20.0 - uTime * 5.0));
+          gl_FragColor = vec4(uColor * pulse, pulse * 0.8);
+        }
+      `,
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    splineMats.push(mat);
+    scene.add(new THREE.Mesh(tubeGeo, mat));
+  });
+
+  const mouse = new THREE.Vector2(0,0);
+  const targetCamPos = new THREE.Vector3(0,0,45);
+  let scrollY = 0;
+  
+  document.addEventListener('mousemove', e => {
+    mouse.x = (e.clientX / innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+    // Mouse velocity affects glitch
+    glitchPass.uniforms.uAmount.value = 0.0015 + (Math.abs(mouse.x) * 0.002);
+  }, { passive: true });
+
+  window.addEventListener('scroll', () => {
+    scrollY = window.scrollY;
+  }, { passive: true });
+
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    
+    // ENHANCEMENT 1: Scroll-Driven Cinematic Camera
+    const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+    const scrollProgress = scrollY / maxScroll;
+    
+    // Camera dives INTO the Z axis
+    targetCamPos.z = 45 - (scrollProgress * 40);
+    targetCamPos.y = (mouse.y * 12) - (scrollProgress * 20);
+    targetCamPos.x = mouse.x * 12;
+
+    const pos = ptGeo.attributes.position.array;
+    let li = 0;
+
+    for (let i = 0; i < N; i++) {
+      let ix = i*3, iy = ix+1, iz = ix+2;
+      pos[ix] += pVel[ix] + Math.sin(t*0.5 + i)*0.01;
+      pos[iy] += pVel[iy] + Math.cos(t*0.4 + i)*0.01;
+      pos[iz] += pVel[iz];
+
+      if(Math.abs(pos[ix])>50) pVel[ix]*=-1;
+      if(Math.abs(pos[iy])>30) pVel[iy]*=-1;
+      if(Math.abs(pos[iz])>25) pVel[iz]*=-1;
+
+      let conns = 0;
+      for(let j=i+1; j<N && conns<3; j++) {
+        let jx=j*3, jy=jx+1, jz=jx+2;
+        let dx=pos[ix]-pos[jx], dy=pos[iy]-pos[jy], dz=pos[iz]-pos[jz];
+        let d = Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(d < 12 && li < MAX_LINES) {
+          let u = d/12;
+          let r = C_GOLD.r*(1-u)+C_CYAN.r*u;
+          let g = C_GOLD.g*(1-u)+C_CYAN.g*u;
+          let b = C_GOLD.b*(1-u)+C_CYAN.b*u;
           
-            <div class="skill-card">
-                <img src="asset/01-primary-blue-docker-logo.svg" alt="Docker Symbol">
-                <h2>Docker</h2>
-            </div>
-                                
-            <div class="skill-card">
-                <img src="asset/html.svg" alt="">
-                <h2>HTML</h2>
-            </div>
-            <div class="skill-card">
-                <img src="asset/js.svg" alt="">
-                <h2>JavaScript</h2>
-            </div>
-            <div class="skill-card">
-                <img src="asset/css.svg" alt="">
-                <h2>CSS</h2>
-            </div>
-            <div class="skill-card">
-                <img src="asset/linux-96.png" alt="">
-                <h2>Linux</h2>
-            </div>
-            
-            <div class="skill-card">
-                <img src="asset/nodejs.svg" alt="">
-                <h2>NodeJS</h2>
-            </div>
-            <div class="skill-card">
-                <img src="asset/react.svg" alt="">
-                <h2>ReactJS</h2>
-            </div>
-             <!-- ✅ New Skill: GenAI -->
-            <div class="skill-card">
-                <img src="asset/ai-svgrepo-com.svg" alt="Generative AI Icon">
-                <h2>Generative AI</h2>
-            </div>
-
-    <!-- ✅ New Skill: PyTorch -->
-            <div class="skill-card">
-                <img src="asset/pytorch-svgrepo-com.svg" alt="PyTorch Icon">
-                <h2>PyTorch</h2>
-            </div>
-
-    <!-- ✅ New Skill: LLM -->
-            <div class="skill-card">
-                <img src="asset/lmstudio.svg" alt="LLM Icon">
-                <h2>LLMs</h2>
-            </div>
-        </div>
-    </section>
-    <section class="portfolio" id="portfolio-loc">
-    <h1>Projects</h1>
-    <div class="portfolio-cards">
-
-        <!-- 1) Suzy — SmartPrep -->
-        <div class="portfolio-card">
-            <img src="asset/images/suzy.png" alt="Suzy — SmartPrep">
-            <div class="overlay">
-                <h3>Suzy — SmartPrep</h3>
-                <p>Full-stack ASP.NET Core Razor Pages study app with GenAI-powered flashcards, mock-tests, note tagging, analytics and a chat assistant that answers progress questions by analyzing saved test/session data.</p>
-                <a href="https://ajayanands.github.io/Suzy-web-description-/" target="_blank" rel="noopener">
-                    <button>See More -></button>
-                </a>
-            </div>
-        </div>
-
-        <!-- 2) RoastMaster AI -->
-        <div class="portfolio-card">
-            <img src="asset/images/IMG_20250630_204626.png" alt="RoastMaster AI">
-            <div class="overlay">
-                <h3>RoastMaster AI</h3>
-                <p>Created a local Streamlit app using Mistral 7B for witty roasts. Integrated semantic search (SentenceTransformers + TF-IDF), prompt engineering, login system, history tracking, and feedback logging.</p>
-                <a href="https://ajayanands.github.io/Roast-Master/" target="_blank">
-                    <button>See More -></button>
-                </a>
-            </div>
-        </div>
-
-        <!-- 3) AI Summariser for Factory Machines -->
-        <div class="portfolio-card">
-            <img src="asset/images/IMG_20250630_204610.png" alt="AI Summariser">
-            <div class="overlay">
-                <h3>AI Summariser for Factory Machines</h3>
-                <p>Built an AI-powered summarizer using LangChain and ChatGroq API to convert real-time machine data into insights. Deployed using Flask API with Docker and SMTP automation.</p>
-                <a href="https://ajayanands.github.io/AI-Shift-Summarizer/" target="_blank">
-                    <button>See More -></button>
-                </a>
-            </div>
-        </div>
-
-        <!-- 4) Face Recognition Attendance -->
-        <div class="portfolio-card">
-            <img src="asset/images/IMG_20250630_204641.png" alt="Attendance System">
-            <div class="overlay">
-                <h3>Face Recognition Attendance System</h3>
-                <p>Modular face-based attendance system using OpenCV, LBPH, and Tkinter. Includes image capture, training, real-time recognition, CSV logging, and email automation.</p>
-                <a href="https://ajayanands.github.io/Face-Attendance/" target="_blank">
-                    <button>See More -></button>
-                </a>
-            </div>
-        </div>
-
-        <!-- 5) #Minee – AI Smartwatch -->
-        <div class="portfolio-card">
-            <img src="asset/images/watch.jpg" alt="Minee Smartwatch">
-            <div class="overlay">
-                <h3>#Minee - AI Smartwatch</h3>
-                <p>Spearheaded #Minee’s development—an AI smartwatch prototype leveraging sensors and machine learning for proactive threat detection & real-time safety alerts.</p>
-                <a href="https://ajayanands.github.io/-MINEE/" target="_blank">
-                    <button>See More -></button>
-                </a>
-            </div>
-        </div>
-
-        <!-- 6) Smart Helmet -->
-        <div class="portfolio-card">
-            <img src="asset/images/hel.jpg" alt="Smart Helmet">
-            <div class="overlay">
-                <h3>Smart Helmet for City Traffic Commissioner</h3>
-                <p>Developed a Smart Helmet prototype using sensors to prevent vehicle ignition when the rider is intoxicated or not wearing a helmet—enhancing road safety.</p>
-            </div>
-        </div>
-
-        <!-- 7) Node Visualization -->
-        <div class="portfolio-card">
-            <img src="asset/images/node.jpg" alt="Node Visualization">
-            <div class="overlay">
-                <h3>Node Visualization</h3>
-                <p>A Python tool built using Tkinter, NetworkX, and Matplotlib for visualizing networks, shortest paths, and node insights. Created to aid academic studies.</p>
-                <a href="https://ajayanands.github.io/Network-Visualization/" target="_blank">
-                    <button>See More -></button>
-                </a>
-            </div>
-        </div>
-
-    </div>
-    <button onclick="openGitHub()">View More</button>
-</section>
-
+          lPos[li*6]=pos[ix]; lPos[li*6+1]=pos[iy]; lPos[li*6+2]=pos[iz];
+          lPos[li*6+3]=pos[jx]; lPos[li*6+4]=pos[jy]; lPos[li*6+5]=pos[jz];
+          lCol[li*6]=r; lCol[li*6+1]=g; lCol[li*6+2]=b;
+          lCol[li*6+3]=r; lCol[li*6+4]=g; lCol[li*6+5]=b;
+          li++; conns++;
+        }
+      }
+    }
     
+    ptGeo.attributes.position.needsUpdate = true;
+    lineGeo.setDrawRange(0, li*2);
+    lineGeo.attributes.position.needsUpdate = true;
+    lineGeo.attributes.color.needsUpdate = true;
 
+    // Update shaders
+    splineMats.forEach(mat => mat.uniforms.uTime.value = t);
+    glitchPass.uniforms.uTime.value = t;
 
+    // Cinematic Camera Drift
+    camera.position.lerp(targetCamPos, 0.02);
+    camera.lookAt(0, -scrollProgress * 15, -scrollProgress * 20); // Look slightly down as we dive
+    scene.rotation.y = t * 0.05;
 
+    composer.render();
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+    composer.setSize(innerWidth, innerHeight);
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════
+   GPU SHADER MORPHING BRAIN — ENHANCED (WEBGL)
+   ═══════════════════════════════════════════════════════ */
+(function initBrain() {
+  if(!window.THREE) return;
+  const wrap = document.getElementById('brain-canvas-wrap');
+  const canvas = document.getElementById('brain-canvas');
+  const label = document.getElementById('brain-label');
+  if (!wrap || !canvas) return;
+
+  const W = wrap.clientWidth || 400, H = wrap.clientHeight || 400;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+  camera.position.set(0, 0, 4.5);
+
+  const brainMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uMorph: { value: 0 },
+      uColor1: { value: new THREE.Color(0xf7c948) }, 
+      uColor2: { value: new THREE.Color(0x38d9f5) }, 
+    },
+    vertexShader: `
+      uniform float uTime;
+      uniform float uMorph;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      
+      vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+      vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+      float snoise(vec3 v){ 
+        const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+        const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+        vec3 i  = floor(v + dot(v, C.yyy) );
+        vec3 x0 = v - i + dot(i, C.xxx) ;
+        vec3 g = step(x0.yzx, x0.xyz);
+        vec3 l = 1.0 - g;
+        vec3 i1 = min( g.xyz, l.zxy );
+        vec3 i2 = max( g.xyz, l.zxy );
+        vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+        vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+        vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
+        i = mod(i, 289.0 ); 
+        vec4 p = permute( permute( permute( i.z + vec4(0.0, i1.z, i2.z, 1.0 )) + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+        float n_ = 1.0/7.0;
+        vec3  ns = n_ * D.wyz - D.xzx;
+        vec4 j = p - 49.0 * floor(p * ns.z *ns.z);
+        vec4 x_ = floor(j * ns.z);
+        vec4 y_ = floor(j - 7.0 * x_ );
+        vec4 x = x_ *ns.x + ns.yyyy;
+        vec4 y = y_ *ns.x + ns.yyyy;
+        vec4 h = 1.0 - abs(x) - abs(y);
+        vec4 b0 = vec4( x.xy, y.xy );
+        vec4 b1 = vec4( x.zw, y.zw );
+        vec4 s0 = floor(b0)*2.0 + 1.0;
+        vec4 s1 = floor(b1)*2.0 + 1.0;
+        vec4 sh = -step(h, vec4(0.0));
+        vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+        vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+        vec3 p0 = vec3(a0.xy,h.x);
+        vec3 p1 = vec3(a0.zw,h.y);
+        vec3 p2 = vec3(a1.xy,h.z);
+        vec3 p3 = vec3(a1.zw,h.w);
+        vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+        p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+        vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+        m = m * m; return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
+      }
+
+      void main() {
+        vNormal = normal;
+        
+        float brainNoise = snoise(position * 2.5 + uTime * 0.3) * 0.15;
+        float spikeNoise = snoise(position * 5.0 - uTime * 0.5) * 0.25;
+        
+        float morphPhase1 = clamp(uMorph, 0.0, 1.0);
+        float morphPhase2 = clamp(uMorph - 1.0, 0.0, 1.0);
+        
+        float finalNoise = mix(0.0, brainNoise, morphPhase1);
+        finalNoise = mix(finalNoise, spikeNoise, morphPhase2);
+
+        vec3 newPosition = position + normal * finalNoise;
+        vPosition = newPosition;
+        
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor1;
+      uniform vec3 uColor2;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      
+      void main() {
+        vec3 viewDirection = normalize(cameraPosition - vPosition);
+        float fresnel = dot(viewDirection, normalize(vNormal));
+        fresnel = clamp(1.0 - fresnel, 0.0, 1.0);
+        fresnel = pow(fresnel, 2.5);
+        
+        vec3 baseColor = mix(uColor1, uColor2, vNormal.y * 0.5 + 0.5);
+        vec3 finalColor = baseColor + (uColor2 * fresnel * 1.5);
+        
+        gl_FragColor = vec4(finalColor, 0.85);
+      }
+    `,
+    transparent: true,
+    wireframe: true,
+  });
+
+  const geometry = new THREE.IcosahedronGeometry(1.2, 5);
+  const mesh = new THREE.Mesh(geometry, brainMat);
+  scene.add(mesh);
+
+  const coreMat = new THREE.MeshBasicMaterial({ color: 0x0a0805, transparent: true, opacity: 0.95 });
+  const coreMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 3), coreMat);
+  scene.add(coreMesh);
+
+  const pCount = 50;
+  const pGeo = new THREE.BoxGeometry(0.05, 0.05, 0.05);
+  const pMat = new THREE.MeshBasicMaterial({ color: 0x38d9f5, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+  const pInst = new THREE.InstancedMesh(pGeo, pMat, pCount);
+  const dummy = new THREE.Object3D();
+  for(let i=0; i<pCount; i++) {
+    let t = (i / pCount) * Math.PI * 2;
+    let r = 1.6 + Math.random() * 0.4;
+    dummy.position.set(Math.cos(t)*r, (Math.random()-0.5)*1.5, Math.sin(t)*r);
+    dummy.rotation.set(Math.random(), Math.random(), Math.random());
+    dummy.updateMatrix();
+    pInst.setMatrixAt(i, dummy.matrix);
+  }
+  scene.add(pInst);
+
+  const STATES = ['Neural Cortex', 'Deep Thought', 'Data Synapse'];
+  let baseMorph = 0, targetMorph = 0, currentMorph = 0;
+  
+  // ENHANCEMENT 8: Micro-Interactions Hover Logic
+  let isHoveringBrain = false;
+  let timeMultiplier = 1;
+
+  wrap.addEventListener('mouseenter', () => {
+    isHoveringBrain = true;
+    label.style.opacity = 0;
+    setTimeout(() => {
+      label.textContent = "Spiky Data Core";
+      label.style.color = '#ff3366'; // Danger/Intense color
+      label.style.opacity = 1;
+    }, 200);
+  });
+  wrap.addEventListener('mouseleave', () => {
+    isHoveringBrain = false;
+    label.style.opacity = 0;
+    setTimeout(() => {
+      label.textContent = STATES[baseMorph];
+      label.style.color = baseMorph % 2 === 0 ? 'var(--gold)' : 'var(--cyan)';
+      label.style.opacity = 1;
+    }, 200);
+  });
+
+  setInterval(() => {
+    if(!isHoveringBrain) {
+      baseMorph = (baseMorph + 1) % 3;
+      label.style.opacity = 0;
+      setTimeout(() => {
+        if(!isHoveringBrain) {
+          label.textContent = STATES[baseMorph];
+          label.style.color = baseMorph % 2 === 0 ? 'var(--gold)' : 'var(--cyan)';
+          label.style.opacity = 1;
+        }
+      }, 300);
+    }
+  }, 4000);
+
+  const mouse = new THREE.Vector2(0,0);
+  document.addEventListener('mousemove', e => {
+    const rect = wrap.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+    mouse.y = -((e.clientY - rect.top) / rect.height - 0.5) * 2;
+  });
+
+  const clock = new THREE.Clock();
+  let rafId;
+  let accumulatedTime = 0;
+
+  function animate() {
+    rafId = requestAnimationFrame(animate);
+    const delta = clock.getDelta();
     
-    </section>
-    <section class="contact-me" id="contact-loc">
-        <h1>Contact Me</h1>
-        <div class="contact">
-            <div class="contact-card">
-                <i class="ri-message-3-line"></i>
-                <a href="mailto:ajay12071911@gmail.com">ajay12071911@gmail.com</a>
-            </div>
-            
-            <div class="contact-card">
-                <i class="ri-phone-line"></i>
-                <p>6369715294</p>
-            </div>
-            <div class="contact-card">
-                <i class="ri-map-pin-3-line"></i>
-                <a href="https://www.google.com/maps?q=Coimbatore, Tamil Nadu, India" target="_blank">Coimbatore, Tamil Nadu, India</a>
-            </div>
-            
-        </div>
-    </section>
-    <script src="script.js"></script>
+    // Target morph is 2 (Spike state) on hover, else regular baseMorph
+    targetMorph = isHoveringBrain ? 2 : baseMorph;
+    timeMultiplier = THREE.MathUtils.lerp(timeMultiplier, isHoveringBrain ? 3.0 : 1.0, 0.05);
+    
+    accumulatedTime += delta * timeMultiplier;
+    currentMorph += (targetMorph - currentMorph) * 0.03;
+    
+    brainMat.uniforms.uTime.value = accumulatedTime;
+    brainMat.uniforms.uMorph.value = currentMorph;
+
+    mesh.rotation.y = accumulatedTime * 0.2 + (mouse.x * 0.5);
+    mesh.rotation.x = mouse.y * 0.3;
+    
+    pInst.rotation.y = -accumulatedTime * 0.3;
+    pInst.rotation.z = Math.sin(accumulatedTime * 0.5) * 0.2;
+
+    renderer.render(scene, camera);
+  }
+
+  const io = new IntersectionObserver(entries => {
+    entries[0].isIntersecting ? animate() : cancelAnimationFrame(rafId);
+  });
+  io.observe(wrap);
+})();
+</script>
 </body>
-
 </html>
